@@ -84,17 +84,18 @@ const Index = () => {
     const token = getToken();
     console.log('[chat] user:', user, 'token:', token);
     setChatSending(true);
+    const textToSend = chatText.trim();
+    setChatText('');
     try {
       const res = await fetch(CHAT_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ text: chatText.trim() }),
+        body: JSON.stringify({ text: textToSend }),
       });
       const data = await res.json();
       console.log('[chat] status:', res.status, 'data:', data);
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
-        setChatText('');
         setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
       } else if (res.status === 401) {
         clearSession();
@@ -106,6 +107,7 @@ const Index = () => {
       }
     } catch (e) {
       console.error('[chat] error:', e);
+      setChatText(textToSend);
       toast({ title: 'Не удалось отправить', variant: 'destructive' });
     } finally {
       setChatSending(false);
@@ -115,13 +117,11 @@ const Index = () => {
   useEffect(() => { loadFeed(); loadMembers(); loadMessages(); }, []);
 
   useEffect(() => {
-    const interval = setInterval(loadMessages, 5000);
+    const interval = setInterval(() => {
+      loadMessages();
+    }, 5000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, []);  
 
   const loadMembers = async () => {
     try {
