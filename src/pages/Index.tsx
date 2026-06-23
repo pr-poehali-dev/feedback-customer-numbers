@@ -11,6 +11,7 @@ import JobsSection from '@/components/app/JobsSection';
 import ChatSection from '@/components/app/ChatSection';
 import AuthDialog from '@/components/app/AuthDialog';
 import ReviewForm from '@/components/app/ReviewForm';
+import AdminPanel from '@/components/app/AdminPanel';
 import {
   API, AUTH_API, CHAT_API,
   User, NumberRecord, Member, ChatMessage,
@@ -187,6 +188,8 @@ const Index = () => {
         onOpenAuth={() => setAuthOpen(true)}
         onLogout={logout}
       />
+
+      <AdminPanel user={user} />
 
       <CheckSection
         query={query}

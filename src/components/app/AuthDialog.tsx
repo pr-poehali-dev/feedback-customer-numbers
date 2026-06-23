@@ -36,7 +36,10 @@ const AuthDialog = ({ open, onClose, onAuth }: Props) => {
         saveSession(data.token, data.user);
         onAuth(data.user);
         onClose();
-        toast({ title: mode === 'login' ? 'Добро пожаловать!' : 'Аккаунт создан!', description: data.user.email });
+        toast({ title: 'Добро пожаловать!', description: data.user.email });
+      } else if (data.pending) {
+        onClose();
+        toast({ title: 'Заявка отправлена!', description: 'Ожидайте одобрения администратора.' });
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
       }
