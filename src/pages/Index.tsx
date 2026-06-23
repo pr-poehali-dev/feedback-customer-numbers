@@ -144,8 +144,6 @@ const Index = () => {
         onCloseHint={closeHint}
       />
 
-      <MembersSection />
-
       <ChatSection
         user={null}
         messages={messages}
