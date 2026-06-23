@@ -79,6 +79,23 @@ def handler(event: dict, context) -> dict:
                 a_esc, workers, hours, p_esc, ph_esc, wt_esc, c_esc)
         )
         row = cur.fetchone()
+
+        # Формируем сообщение в общий чат
+        lines = ['📋 НОВАЯ ЗАЯВКА НА РАБОТУ']
+        lines.append('🔨 Фронт работы: %s' % work_type)
+        lines.append('📍 Адрес: %s' % address)
+        lines.append('👷 Рабочих: %s чел.' % workers)
+        lines.append('⏱ Часов: %s' % hours)
+        if price:
+            lines.append('💰 Цена: %s' % price)
+        lines.append('📞 Тел: %s' % phone)
+        if comment:
+            lines.append('💬 %s' % comment)
+        chat_text = '\n'.join(lines)
+        chat_esc = chat_text.replace("'", "''")
+        cur.execute(
+            "INSERT INTO messages (user_id, user_name, text) VALUES (NULL, 'Заявки на работу', '%s')" % chat_esc
+        )
         conn.commit()
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({'success': True, 'id': row[0]}, ensure_ascii=False)}
