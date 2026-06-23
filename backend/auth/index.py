@@ -55,6 +55,9 @@ def handler(event: dict, context) -> dict:
         email = (body.get('email') or '').strip().lower()
         password = (body.get('password') or '').strip()
         name = (body.get('name') or '').strip()[:200]
+        birthdate = (body.get('birthdate') or '').strip()
+        work_direction = (body.get('work_direction') or '').strip()[:300]
+        organization = (body.get('organization') or '').strip()[:300]
         if not email or not password:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Укажите email и пароль'}, ensure_ascii=False)}
@@ -68,8 +71,12 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Email уже зарегистрирован'}, ensure_ascii=False)}
         pw_hash = _hash(password)
         n_esc = name.replace("'", "''")
+        wd_esc = work_direction.replace("'", "''")
+        org_esc = organization.replace("'", "''")
+        bd_val = ("'%s'" % birthdate) if birthdate else 'NULL'
         cur.execute(
-            "INSERT INTO users (email, password_hash, name) VALUES ('%s', '%s', '%s') RETURNING id" % (e_esc, pw_hash, n_esc)
+            "INSERT INTO users (email, password_hash, name, birthdate, work_direction, organization) "
+            "VALUES ('%s', '%s', '%s', %s, '%s', '%s') RETURNING id" % (e_esc, pw_hash, n_esc, bd_val, wd_esc, org_esc)
         )
         user_id = cur.fetchone()[0]
         token = secrets.token_hex(32)
