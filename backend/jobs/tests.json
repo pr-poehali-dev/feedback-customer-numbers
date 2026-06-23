@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Список заявок",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"jobs": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Создать заявку",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "address": "г. Москва, ул. Ленина 1",
+        "workers": 3,
+        "hours": 8,
+        "price": "5000 руб/день",
+        "phone": "+79001234567",
+        "work_type": "Кладка кирпича",
+        "comment": "Срочно"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

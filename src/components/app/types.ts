@@ -39,7 +39,7 @@ export const verdictMeta: Record<Verdict, { label: string; color: string; icon: 
 export const navItems = [
   { id: 'check', label: 'Проверка', icon: 'Search' },
   { id: 'reviews', label: 'Отзывы', icon: 'MessageSquare' },
-  { id: 'stats', label: 'Рейтинги', icon: 'BarChart3' },
+  { id: 'jobs', label: 'Заявки', icon: 'ClipboardList' },
   { id: 'members', label: 'Участники', icon: 'Users' },
   { id: 'chat', label: 'Чат', icon: 'MessageCircle' },
   { id: 'support', label: 'Контакты', icon: 'LifeBuoy' },
@@ -56,4 +56,3 @@ export const clearSession = () => {
   localStorage.removeItem('ms_token');
   localStorage.removeItem('ms_user');
 };
-

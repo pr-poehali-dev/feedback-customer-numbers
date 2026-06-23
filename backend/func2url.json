@@ -1,4 +1,5 @@
 {
+  "jobs": "https://functions.poehali.dev/9db3fbb7-d09a-451b-9b2c-f75933050bb9",
   "chat": "https://functions.poehali.dev/4900b2e3-7dad-46ac-bb86-767cec0438f1",
   "auth": "https://functions.poehali.dev/d1b46d26-6b11-4be2-8267-1081db5bb482",
   "numbers": "https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f"

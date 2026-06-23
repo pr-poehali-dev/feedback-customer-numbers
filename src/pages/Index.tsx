@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import AppHeader from '@/components/app/AppHeader';
 import CheckSection from '@/components/app/CheckSection';
 import ReviewsSection from '@/components/app/ReviewsSection';
+import JobsSection from '@/components/app/JobsSection';
 import ChatSection from '@/components/app/ChatSection';
 import AuthDialog from '@/components/app/AuthDialog';
 import ReviewForm from '@/components/app/ReviewForm';
@@ -206,6 +207,8 @@ const Index = () => {
         members={members}
         onOpenForm={openForm}
       />
+
+      <JobsSection />
 
       <ChatSection
         user={user}
