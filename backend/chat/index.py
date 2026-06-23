@@ -21,7 +21,7 @@ def _get_user(cur, token: str):
     return cur.fetchone()
 
 def handler(event: dict, context) -> dict:
-    """Общий чат для зарегистрированных участников"""
+    """Общий чат — простой, без модерации, пишут все"""
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': _cors(), 'body': ''}
 

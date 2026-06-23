@@ -9,12 +9,12 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Отправить без авторизации",
+      "name": "Отправить сообщение без входа (разрешено)",
       "method": "POST",
       "path": "/",
-      "body": {"text": "Привет"},
-      "expectedStatus": 401,
-      "expectedBody": {"error": "string"},
+      "body": {"text": "Привет всем"},
+      "expectedStatus": 200,
+      "expectedBody": {"message": {}},
       "bodyMatcher": "partial"
     }
   ]
