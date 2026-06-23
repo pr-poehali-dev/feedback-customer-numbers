@@ -85,7 +85,7 @@ const Index = () => {
     try {
       const res = await fetch(CHAT_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`, 'X-Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({ text: chatText.trim() }),
       });
       const data = await res.json();
@@ -160,7 +160,7 @@ const Index = () => {
   const logout = async () => {
     const token = getToken();
     if (token) {
-      fetch(AUTH_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'logout' }) });
+      fetch(AUTH_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'logout' }) });
     }
     clearSession();
     setUser(null);
