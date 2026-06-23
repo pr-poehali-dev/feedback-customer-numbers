@@ -58,19 +58,22 @@ def handler(event: dict, context) -> dict:
         birthdate_raw = (body.get('birthdate') or '').strip()
         work_direction = (body.get('work_direction') or '').strip()[:300]
         organization = (body.get('organization') or '').strip()[:300]
-        # Конвертируем ДД.ММ.ГГГГ или ДД/ММ/ГГГГ → ГГГГ-ММ-ДД для PostgreSQL
+        # Конвертируем дату из любого формата в ГГГГ-ММ-ДД
         birthdate = None
         if birthdate_raw:
-            for sep in ['.', '/']:
-                if sep in birthdate_raw:
-                    parts = birthdate_raw.split(sep)
-                    if len(parts) == 3:
-                        d, m, y = parts[0].strip(), parts[1].strip(), parts[2].strip()
-                        if len(y) == 4:
-                            birthdate = '%s-%s-%s' % (y, m.zfill(2), d.zfill(2))
-                        else:
-                            birthdate = '%s-%s-%s' % (d, m.zfill(2), y.zfill(2))
-                    break
+            try:
+                for sep in ['.', '/', '-']:
+                    if sep in birthdate_raw:
+                        parts = birthdate_raw.split(sep)
+                        if len(parts) == 3:
+                            p0, p1, p2 = parts[0].strip(), parts[1].strip(), parts[2].strip()
+                            if len(p2) == 4:
+                                birthdate = '%s-%s-%s' % (p2, p1.zfill(2), p0.zfill(2))
+                            elif len(p0) == 4:
+                                birthdate = '%s-%s-%s' % (p0, p1.zfill(2), p2.zfill(2))
+                        break
+            except Exception:
+                birthdate = None
         if not email or not password:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Укажите email и пароль'}, ensure_ascii=False)}
@@ -86,11 +89,16 @@ def handler(event: dict, context) -> dict:
         n_esc = name.replace("'", "''")
         wd_esc = work_direction.replace("'", "''")
         org_esc = organization.replace("'", "''")
-        bd_val = ("'%s'" % birthdate) if birthdate else 'NULL'  # уже в формате ГГГГ-ММ-ДД
-        cur.execute(
-            "INSERT INTO users (email, password_hash, name, birthdate, work_direction, organization) "
-            "VALUES ('%s', '%s', '%s', %s, '%s', '%s') RETURNING id" % (e_esc, pw_hash, n_esc, bd_val, wd_esc, org_esc)
-        )
+        if birthdate:
+            cur.execute(
+                "INSERT INTO users (email, password_hash, name, birthdate, work_direction, organization) "
+                "VALUES ('%s', '%s', '%s', '%s'::date, '%s', '%s') RETURNING id" % (e_esc, pw_hash, n_esc, birthdate, wd_esc, org_esc)
+            )
+        else:
+            cur.execute(
+                "INSERT INTO users (email, password_hash, name, work_direction, organization) "
+                "VALUES ('%s', '%s', '%s', '%s', '%s') RETURNING id" % (e_esc, pw_hash, n_esc, wd_esc, org_esc)
+            )
         user_id = cur.fetchone()[0]
         token = secrets.token_hex(32)
         cur.execute(
