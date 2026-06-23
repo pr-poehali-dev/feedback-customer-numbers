@@ -80,14 +80,15 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
 
   return (
     <section id="chat" className="relative z-10 container mx-auto px-4 py-16">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <Icon name="MessageCircle" size={24} className="text-primary" />
-          <h2 className="text-2xl font-display font-bold">Общий чат</h2>
-          {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
-        </div>
-        <Button onClick={() => setJobFormOpen(true)} variant="outline" className="rounded-xl font-semibold">
-          <Icon name="ClipboardList" size={16} />Подать заявку
+      <div className="flex items-center gap-3 mb-6">
+        <Icon name="MessageCircle" size={24} className="text-primary" />
+        <h2 className="text-2xl font-display font-bold">Общий чат</h2>
+        {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
+      </div>
+
+      <div className="flex justify-center mb-6">
+        <Button onClick={() => setJobFormOpen(true)} className="rounded-xl font-semibold px-8 py-3 text-base">
+          <Icon name="ClipboardList" size={18} />Подать заявку
         </Button>
       </div>
 
