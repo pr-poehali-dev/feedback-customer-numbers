@@ -55,9 +55,22 @@ def handler(event: dict, context) -> dict:
         email = (body.get('email') or '').strip().lower()
         password = (body.get('password') or '').strip()
         name = (body.get('name') or '').strip()[:200]
-        birthdate = (body.get('birthdate') or '').strip()
+        birthdate_raw = (body.get('birthdate') or '').strip()
         work_direction = (body.get('work_direction') or '').strip()[:300]
         organization = (body.get('organization') or '').strip()[:300]
+        # Конвертируем ДД.ММ.ГГГГ или ДД/ММ/ГГГГ → ГГГГ-ММ-ДД для PostgreSQL
+        birthdate = None
+        if birthdate_raw:
+            for sep in ['.', '/']:
+                if sep in birthdate_raw:
+                    parts = birthdate_raw.split(sep)
+                    if len(parts) == 3:
+                        d, m, y = parts[0].strip(), parts[1].strip(), parts[2].strip()
+                        if len(y) == 4:
+                            birthdate = '%s-%s-%s' % (y, m.zfill(2), d.zfill(2))
+                        else:
+                            birthdate = '%s-%s-%s' % (d, m.zfill(2), y.zfill(2))
+                    break
         if not email or not password:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Укажите email и пароль'}, ensure_ascii=False)}
@@ -73,7 +86,7 @@ def handler(event: dict, context) -> dict:
         n_esc = name.replace("'", "''")
         wd_esc = work_direction.replace("'", "''")
         org_esc = organization.replace("'", "''")
-        bd_val = ("'%s'" % birthdate) if birthdate else 'NULL'
+        bd_val = ("'%s'" % birthdate) if birthdate else 'NULL'  # уже в формате ГГГГ-ММ-ДД
         cur.execute(
             "INSERT INTO users (email, password_hash, name, birthdate, work_direction, organization) "
             "VALUES ('%s', '%s', '%s', %s, '%s', '%s') RETURNING id" % (e_esc, pw_hash, n_esc, bd_val, wd_esc, org_esc)
