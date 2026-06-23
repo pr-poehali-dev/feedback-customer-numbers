@@ -188,7 +188,7 @@ const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: (
   );
 };
 
-interface Member { id: number; name: string; joined: string; }
+interface Member { id: number; name: string; joined: string; work_direction: string; organization: string; }
 
 const Index = () => {
   const [query, setQuery] = useState('');
@@ -514,23 +514,40 @@ const Index = () => {
           <p className="text-muted-foreground">Пока никто не зарегистрировался. Будьте первым!</p>
         ) : (
           <div className="glass rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-3 px-5 py-3 text-xs text-muted-foreground border-b border-border font-semibold uppercase tracking-wide">
+            <div className="hidden md:grid grid-cols-5 px-5 py-3 text-xs text-muted-foreground border-b border-border font-semibold uppercase tracking-wide">
               <span>#</span>
-              <span>Имя</span>
+              <span>ФИО</span>
+              <span>Организация</span>
+              <span>Направление</span>
               <span>Дата входа</span>
             </div>
             {members.map((m, i) => (
-              <div key={m.id} className={`grid grid-cols-3 px-5 py-4 items-center ${i !== members.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/30 transition-colors`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+              <div key={m.id} className={`px-5 py-4 ${i !== members.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/30 transition-colors`}>
+                {/* Desktop */}
+                <div className="hidden md:grid grid-cols-5 items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                      {(m.name || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm text-muted-foreground">{i + 1}</span>
+                  </div>
+                  <p className="font-medium text-sm truncate">{m.name || 'Участник'}</p>
+                  <p className="text-sm text-muted-foreground truncate">{m.organization || '—'}</p>
+                  <p className="text-sm text-muted-foreground truncate">{m.work_direction || '—'}</p>
+                  <span className="text-sm text-muted-foreground">{m.joined}</span>
+                </div>
+                {/* Mobile */}
+                <div className="flex md:hidden items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
                     {(m.name || '?').charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm text-muted-foreground">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{m.name || 'Участник'}</p>
+                    {m.organization && <p className="text-xs text-muted-foreground mt-0.5">{m.organization}</p>}
+                    {m.work_direction && <p className="text-xs text-primary mt-0.5">{m.work_direction}</p>}
+                    <p className="text-xs text-muted-foreground mt-1">{m.joined}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-sm truncate">{m.name || 'Участник'}</p>
-                </div>
-                <span className="text-sm text-muted-foreground">{m.joined}</span>
               </div>
             ))}
           </div>

@@ -121,13 +121,15 @@ def handler(event: dict, context) -> dict:
 
     # Список участников
     if action == 'members':
-        cur.execute("SELECT id, name, email, created_at FROM users ORDER BY created_at DESC")
+        cur.execute("SELECT id, name, created_at, work_direction, organization FROM users ORDER BY created_at DESC")
         rows = cur.fetchall()
         members = [
             {
                 'id': r[0],
                 'name': r[1] or '',
-                'joined': r[3].strftime('%d.%m.%Y') if r[3] else '',
+                'joined': r[2].strftime('%d.%m.%Y') if r[2] else '',
+                'work_direction': r[3] or '',
+                'organization': r[4] or '',
             }
             for r in rows
         ]
