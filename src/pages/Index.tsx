@@ -85,7 +85,7 @@ const Index = () => {
     try {
       const res = await fetch(CHAT_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`, 'X-Authorization': `Bearer ${getToken()}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({ text: chatText.trim() }),
       });
       const data = await res.json();
@@ -93,6 +93,11 @@ const Index = () => {
         setMessages((prev) => [...prev, data.message]);
         setChatText('');
         setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+      } else if (res.status === 401) {
+        clearSession();
+        setUser(null);
+        setAuthOpen(true);
+        toast({ title: 'Сессия истекла', description: 'Войдите снова', variant: 'destructive' });
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
       }
