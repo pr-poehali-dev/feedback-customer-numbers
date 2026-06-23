@@ -207,7 +207,6 @@ const Index = () => {
 
       <ReviewsSection
         feed={feed}
-        members={members}
         onOpenForm={openForm}
       />
 
