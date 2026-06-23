@@ -81,14 +81,17 @@ const Index = () => {
   const sendMessage = async () => {
     if (!chatText.trim()) return;
     if (!user) { setAuthOpen(true); return; }
+    const token = getToken();
+    console.log('[chat] user:', user, 'token:', token);
     setChatSending(true);
     try {
       const res = await fetch(CHAT_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ text: chatText.trim() }),
       });
       const data = await res.json();
+      console.log('[chat] status:', res.status, 'data:', data);
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
         setChatText('');
@@ -101,7 +104,8 @@ const Index = () => {
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
       }
-    } catch {
+    } catch (e) {
+      console.error('[chat] error:', e);
       toast({ title: 'Не удалось отправить', variant: 'destructive' });
     } finally {
       setChatSending(false);
