@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 
+import AppHeader from '@/components/app/AppHeader';
+import CheckSection from '@/components/app/CheckSection';
+import ReviewsSection from '@/components/app/ReviewsSection';
+import ChatSection from '@/components/app/ChatSection';
 import AuthDialog from '@/components/app/AuthDialog';
 import ReviewForm from '@/components/app/ReviewForm';
-import ChatSection from '@/components/app/ChatSection';
 import {
   API, AUTH_API, CHAT_API,
-  User, NumberRecord, Member, ChatMessage, Verdict,
-  verdictMeta, navItems,
+  User, NumberRecord, Member, ChatMessage,
   getToken, clearSession,
 } from '@/components/app/types';
 
@@ -18,14 +20,6 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
-
-const renderStars = (rating: number, size = 14) => (
-  <div className="flex gap-0.5">
-    {[1, 2, 3, 4, 5].map((i) => (
-      <Icon key={i} name="Star" size={size} className={i <= Math.round(rating) ? 'text-warning fill-warning' : 'text-muted'} />
-    ))}
-  </div>
-);
 
 const Index = () => {
   const [query, setQuery] = useState('');
@@ -177,263 +171,32 @@ const Index = () => {
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      <header className="relative z-20 sticky top-0 glass">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <a href="#check" className="flex items-center gap-2">
-            <img src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg" alt="Микс Строй" className="w-9 h-9 rounded-xl object-cover" />
-            <span className="font-display font-bold text-lg tracking-tight">Микс <span className="text-primary">Строй</span></span>
-          </a>
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <a key={item.id} href={`#${item.id}`} className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
-                <Icon name={item.icon} size={15} />
-                {item.label}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => openForm()} size="sm" variant="outline" className="rounded-lg font-medium">
-              <Icon name="Plus" size={15} />
-              <span className="hidden sm:inline">Отзыв</span>
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-lg font-medium"
-              onClick={() => {
-                const url = window.location.href;
-                if (navigator.share) {
-                  navigator.share({ title: 'Микс Строй — проверка номеров заказчиков', url });
-                } else {
-                  navigator.clipboard.writeText(url);
-                  toast({ title: 'Ссылка скопирована!', description: 'Отправьте её друзьям или коллегам.' });
-                }
-              }}
-            >
-              <Icon name="Share2" size={15} />
-              <span className="hidden sm:inline">Поделиться</span>
-            </Button>
-            {user ? (
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline text-xs text-muted-foreground max-w-[100px] truncate">{user.name || user.email}</span>
-                <Button size="sm" variant="outline" className="rounded-lg font-medium" onClick={logout}>
-                  <Icon name="LogOut" size={15} />
-                </Button>
-              </div>
-            ) : (
-              <Button size="sm" className="rounded-lg font-medium" onClick={() => setAuthOpen(true)}>
-                <Icon name="LogIn" size={15} />
-                <span className="hidden sm:inline">Войти</span>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        user={user}
+        onOpenForm={() => openForm()}
+        onOpenAuth={() => setAuthOpen(true)}
+        onLogout={logout}
+      />
 
-      <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
-          Живая база отзывов о заказчиках
-        </div>
-        <h1 className="animate-fade-up text-4xl md:text-6xl font-display font-bold tracking-tight mb-5" style={{ animationDelay: '0.05s' }}>
-          Микс Строй<br /><span className="text-primary text-glow">проверка номеров</span>
-        </h1>
-        <p className="animate-fade-up text-muted-foreground max-w-xl mx-auto mb-10 text-lg" style={{ animationDelay: '0.1s' }}>
-          Узнай рейтинг и отзывы о номере до начала работы. Защити себя от мошенников и неплатёжеспособных клиентов.
-        </p>
+      <CheckSection
+        query={query}
+        setQuery={setQuery}
+        result={result}
+        searched={searched}
+        searching={searching}
+        hintClosed={hintClosed}
+        tracked={tracked}
+        onSearch={handleSearch}
+        onToggleTrack={toggleTrack}
+        onOpenForm={openForm}
+        onCloseHint={closeHint}
+      />
 
-        {!hintClosed && (
-          <div className="animate-fade-up max-w-2xl mx-auto mb-8" style={{ animationDelay: '0.2s' }}>
-            <div className="glass rounded-2xl p-5 relative">
-              <button onClick={closeHint} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors">
-                <Icon name="X" size={16} />
-              </button>
-              <p className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-                <Icon name="Lightbulb" size={16} />
-                Как пользоваться NumCheck
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-                {[
-                  { icon: 'Search', step: '1', title: 'Введите номер', desc: 'Вставьте телефон заказчика в строку поиска и нажмите «Проверить»' },
-                  { icon: 'ShieldCheck', step: '2', title: 'Смотрите результат', desc: 'Вы увидите рейтинг, вердикт и отзывы других исполнителей' },
-                  { icon: 'Plus', step: '3', title: 'Оставьте отзыв', desc: 'Поделитесь своим опытом — помогите другим не попасть на мошенника' },
-                ].map((item) => (
-                  <div key={item.step} className="flex gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <Icon name={item.icon} size={16} className="text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{item.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button onClick={closeHint} className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2">
-                Понятно, больше не показывать
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="animate-fade-up max-w-xl mx-auto" style={{ animationDelay: '0.15s' }}>
-          <div className="glass rounded-2xl p-2 flex items-center gap-2">
-            <Icon name="Search" size={20} className="text-muted-foreground ml-3" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Введите номер телефона..."
-              className="flex-1 bg-transparent outline-none font-mono text-base placeholder:text-muted-foreground"
-            />
-            <Button onClick={handleSearch} disabled={searching} className="rounded-xl px-6 font-semibold">
-              {searching ? '...' : 'Проверить'}
-            </Button>
-          </div>
-        </div>
-
-        {searched && (
-          <div className="animate-fade-up max-w-xl mx-auto mt-8">
-            {result ? (
-              <div className="glass rounded-2xl p-6 text-left">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="font-mono text-xl font-bold">{result.phone}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {renderStars(result.rating)}
-                      <span className="text-sm text-muted-foreground">{result.rating} · {result.reviews} отзывов</span>
-                    </div>
-                  </div>
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary ${verdictMeta[result.verdict].color}`}>
-                    <Icon name={verdictMeta[result.verdict].icon} size={16} />
-                    <span className="text-sm font-semibold">{verdictMeta[result.verdict].label}</span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {result.tags.map((t) => (
-                    <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground">{t}</span>
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-3">«{result.lastReview}»</p>
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={() => toggleTrack(result.phone)} variant={tracked.includes(result.phone) ? 'secondary' : 'outline'} className="flex-1 rounded-xl">
-                    <Icon name={tracked.includes(result.phone) ? 'BellRing' : 'Bell'} size={16} />
-                    {tracked.includes(result.phone) ? 'Отслеживается' : 'Следить'}
-                  </Button>
-                  <Button onClick={() => openForm(result.phone)} className="flex-1 rounded-xl">
-                    <Icon name="Plus" size={16} />Оставить отзыв
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="glass rounded-2xl p-6 text-center">
-                <Icon name="SearchX" size={32} className="text-muted-foreground mx-auto mb-2" />
-                <p className="font-medium">Номер пока не в базе</p>
-                <p className="text-sm text-muted-foreground mt-1 mb-4">Станьте первым, кто оставит отзыв о нём.</p>
-                <Button onClick={() => openForm(query)} className="rounded-xl"><Icon name="Plus" size={16} />Добавить отзыв</Button>
-              </div>
-            )}
-          </div>
-        )}
-      </section>
-
-      <section id="reviews" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Icon name="MessageSquare" size={24} className="text-primary" />
-            <h2 className="text-2xl font-display font-bold">Свежие отзывы</h2>
-          </div>
-          <Button onClick={() => openForm()} variant="outline" className="rounded-xl"><Icon name="Plus" size={16} />Добавить</Button>
-        </div>
-        {feed.length === 0 ? (
-          <p className="text-muted-foreground">Пока нет отзывов. Будьте первым!</p>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {feed.map((r) => (
-              <div key={r.phone} className="glass rounded-2xl p-5 hover:border-primary/40 transition-colors">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-mono font-semibold">{r.phone}</span>
-                  <div className={`flex items-center gap-1 text-xs ${verdictMeta[r.verdict].color}`}>
-                    <Icon name={verdictMeta[r.verdict].icon} size={14} />
-                    {verdictMeta[r.verdict].label}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mb-2">{renderStars(r.rating)}<span className="text-xs text-muted-foreground">{r.reviews} отзывов</span></div>
-                <p className="text-sm text-muted-foreground">«{r.lastReview}»</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section id="stats" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="flex items-center gap-3 mb-8">
-          <Icon name="BarChart3" size={24} className="text-primary" />
-          <h2 className="text-2xl font-display font-bold">Рейтинги и статистика</h2>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Номеров в базе', value: feed.length, icon: 'Database' },
-            { label: 'Отзывов всего', value: feed.reduce((s, r) => s + r.reviews, 0), icon: 'MessageSquare' },
-            { label: 'Мошенников', value: feed.filter((r) => r.verdict === 'scam').length, icon: 'ShieldX' },
-            { label: 'Надёжных', value: feed.filter((r) => r.verdict === 'safe').length, icon: 'ShieldCheck' },
-          ].map((s) => (
-            <div key={s.label} className="glass rounded-2xl p-6 text-center">
-              <Icon name={s.icon} size={24} className="text-primary mx-auto mb-3" />
-              <p className="text-3xl font-display font-bold">{s.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="members" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="flex items-center gap-3 mb-8">
-          <Icon name="Users" size={24} className="text-primary" />
-          <h2 className="text-2xl font-display font-bold">Участники</h2>
-          <span className="text-sm text-muted-foreground ml-1">({members.length})</span>
-        </div>
-        {members.length === 0 ? (
-          <p className="text-muted-foreground">Пока никто не зарегистрировался. Будьте первым!</p>
-        ) : (
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="hidden md:grid grid-cols-5 px-5 py-3 text-xs text-muted-foreground border-b border-border font-semibold uppercase tracking-wide">
-              <span>#</span>
-              <span>ФИО</span>
-              <span>Организация</span>
-              <span>Направление</span>
-              <span>Дата входа</span>
-            </div>
-            {members.map((m, i) => (
-              <div key={m.id} className={`px-5 py-4 ${i !== members.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/30 transition-colors`}>
-                <div className="hidden md:grid grid-cols-5 items-center gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                      {(m.name || '?').charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-sm text-muted-foreground">{i + 1}</span>
-                  </div>
-                  <p className="font-medium text-sm truncate">{m.name || 'Участник'}</p>
-                  <p className="text-sm text-muted-foreground truncate">{m.organization || '—'}</p>
-                  <p className="text-sm text-muted-foreground truncate">{m.work_direction || '—'}</p>
-                  <span className="text-sm text-muted-foreground">{m.joined}</span>
-                </div>
-                <div className="flex md:hidden items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
-                    {(m.name || '?').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{m.name || 'Участник'}</p>
-                    {m.organization && <p className="text-xs text-muted-foreground mt-0.5">{m.organization}</p>}
-                    {m.work_direction && <p className="text-xs text-primary mt-0.5">{m.work_direction}</p>}
-                    <p className="text-xs text-muted-foreground mt-1">{m.joined}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      <ReviewsSection
+        feed={feed}
+        members={members}
+        onOpenForm={openForm}
+      />
 
       <ChatSection
         user={user}
