@@ -223,7 +223,7 @@ const Index = () => {
           Живая база отзывов о заказчиках
         </div>
         <h1 className="animate-fade-up text-4xl md:text-6xl font-display font-bold tracking-tight mb-5" style={{ animationDelay: '0.05s' }}>
-          Проверь заказчика<br /><span className="text-primary text-glow">за 1 секунду</span>
+          Микс Строй<br /><span className="text-primary text-glow">проверка номеров</span>
         </h1>
         <p className="animate-fade-up text-muted-foreground max-w-xl mx-auto mb-10 text-lg" style={{ animationDelay: '0.1s' }}>
           Узнай рейтинг и отзывы о номере до начала работы. Защити себя от мошенников и неплатёжеспособных клиентов.
