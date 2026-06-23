@@ -37,6 +37,33 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
       Узнай рейтинг и отзывы о номере до начала работы. Защити себя от мошенников и неплатёжеспособных клиентов.
     </p>
 
+    <div className="animate-fade-up max-w-2xl mx-auto mb-10 text-left" style={{ animationDelay: '0.12s' }}>
+      <div className="border border-primary/50 rounded-2xl overflow-hidden">
+        <div className="bg-primary/10 px-5 py-3 flex items-center gap-2">
+          <Icon name="AlertTriangle" size={18} className="text-primary shrink-0" />
+          <p className="font-bold text-sm text-primary">Кто взял заявку — обязательно отписывайтесь в назначенное время, будьте на связи!</p>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          <p className="font-bold text-sm uppercase tracking-wide text-primary">Правила для исполнителей</p>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
+              <p className="text-sm text-foreground">Полный отчёт с утра тому, у кого взяли заявку.</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
+              <div className="text-sm text-foreground space-y-2">
+                <p>Если берёте заявку — относитесь к ней с большой ответственностью, все мы зарабатываем!</p>
+                <p className="text-destructive font-medium">Не ставьте кривых и пьяных людей!</p>
+                <p>Диспетчеры из-за этого получают плохие отзывы на свои аккаунты, в которые вложено очень много сил и средств.</p>
+                <p>Если у вас минус на объекте — <span className="font-semibold">немедленно</span> отписывайтесь об этом человеку, у которого взяли заявку. Не надо надеяться, что прокатит!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {!hintClosed && (
       <div className="animate-fade-up max-w-2xl mx-auto mb-8" style={{ animationDelay: '0.2s' }}>
         <div className="glass rounded-2xl p-5 relative">
