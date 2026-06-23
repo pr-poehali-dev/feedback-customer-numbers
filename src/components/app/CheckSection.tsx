@@ -130,6 +130,12 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
       </div>
     )}
 
+    <div className="animate-fade-up max-w-xl mx-auto mb-4" style={{ animationDelay: '0.13s' }}>
+      <h2 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-center">
+        Проверить <span className="text-muted-foreground font-normal">или</span> <span className="text-primary">оставить отзыв</span>
+      </h2>
+    </div>
+
     <div className="animate-fade-up max-w-xl mx-auto" style={{ animationDelay: '0.15s' }}>
       <div className="glass rounded-2xl p-2 flex items-center gap-2">
         <Icon name="Search" size={20} className="text-muted-foreground ml-3" />
