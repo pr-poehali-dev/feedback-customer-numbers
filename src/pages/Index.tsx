@@ -9,6 +9,7 @@ import CheckSection from '@/components/app/CheckSection';
 import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
+import MembersSection from '@/components/app/MembersSection';
 import { API, CHAT_API, NumberRecord, ChatMessage } from '@/components/app/types';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -142,6 +143,8 @@ const Index = () => {
         onOpenForm={(phone) => requireParticipant(() => { setFormPhone(phone); setFormOpen(true); })}
         onCloseHint={closeHint}
       />
+
+      <MembersSection />
 
       <ChatSection
         user={null}

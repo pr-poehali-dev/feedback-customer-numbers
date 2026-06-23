@@ -21,13 +21,34 @@ def handler(event: dict, context) -> dict:
     conn = _db()
     cur = conn.cursor()
 
-    # GET — проверить существование по номеру телефона
+    # GET — список всех участников или проверка по телефону
     if method == 'GET':
         params = event.get('queryStringParameters') or {}
         phone = (params.get('phone') or '').strip()
+
+        # Без телефона — вернуть всех участников
         if not phone:
-            return {'statusCode': 400, 'headers': _cors(),
-                    'body': json.dumps({'error': 'Укажите номер телефона'})}
+            cur.execute("SELECT full_name, organization, work_direction, created_at FROM participants ORDER BY created_at DESC")
+            rows = cur.fetchall()
+            members = []
+            for r in rows:
+                name = r[0] or ''
+                # Формируем Фамилия И.О.
+                parts = name.split()
+                if len(parts) >= 3:
+                    short = '%s %s.%s.' % (parts[0], parts[1][0], parts[2][0])
+                elif len(parts) == 2:
+                    short = '%s %s.' % (parts[0], parts[1][0])
+                else:
+                    short = name
+                members.append({
+                    'short_name': short,
+                    'organization': r[1] or '',
+                    'work_direction': r[2] or '',
+                    'joined': r[3].strftime('%d.%m.%Y') if r[3] else '',
+                })
+            return {'statusCode': 200, 'headers': _cors(),
+                    'body': json.dumps({'members': members}, ensure_ascii=False)}
         ph_esc = phone.replace("'", "''")
         cur.execute("SELECT id, full_name, organization, work_direction FROM participants WHERE phone = '%s'" % ph_esc)
         row = cur.fetchone()
