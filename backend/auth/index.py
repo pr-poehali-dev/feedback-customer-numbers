@@ -105,6 +105,21 @@ def handler(event: dict, context) -> dict:
                 "VALUES ('%s', '%s', '%s', '%s', '%s', FALSE) RETURNING id" % (e_esc, pw_hash, n_esc, wd_esc, org_esc)
             )
         user_id = cur.fetchone()[0]
+
+        # Уведомление в общий чат
+        lines = ['🔔 НОВАЯ ЗАЯВКА НА РЕГИСТРАЦИЮ', '']
+        lines.append('👤 %s' % (name or 'Без имени'))
+        lines.append('📧 %s' % email)
+        if organization:
+            lines.append('🏢 %s' % organization)
+        if work_direction:
+            lines.append('🔨 %s' % work_direction)
+        lines.append('')
+        lines.append('⚡ Войдите как администратор и одобрите заявку.')
+        chat_text = '\n'.join(lines).replace("'", "''")
+        cur.execute(
+            "INSERT INTO messages (user_id, user_name, text) VALUES (NULL, 'Система', '%s')" % chat_text
+        )
         conn.commit()
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({'pending': True, 'message': 'Заявка отправлена. Ожидайте одобрения администратора.'}, ensure_ascii=False)}
