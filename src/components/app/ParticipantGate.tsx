@@ -49,8 +49,9 @@ const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
       }
-    } catch {
-      toast({ title: 'Не удалось подключиться', variant: 'destructive' });
+    } catch (e) {
+      console.error('[participants] error:', e);
+      toast({ title: 'Не удалось подключиться', description: 'Проверьте интернет-соединение', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
