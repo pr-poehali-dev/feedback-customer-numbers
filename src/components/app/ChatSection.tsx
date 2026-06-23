@@ -1,7 +1,13 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 import { User, ChatMessage } from './types';
+
+const JOBS_API = 'https://functions.poehali.dev/9db3fbb7-d09a-451b-9b2c-f75933050bb9';
 
 interface Props {
   user: User | null;
@@ -14,16 +20,77 @@ interface Props {
   chatEndRef: React.RefObject<HTMLDivElement>;
 }
 
+const JobForm = ({ onDone }: { onDone: () => void }) => {
+  const [address, setAddress] = useState('');
+  const [workers, setWorkers] = useState('');
+  const [hours, setHours] = useState('');
+  const [price, setPrice] = useState('');
+  const [phone, setPhone] = useState('');
+  const [workType, setWorkType] = useState('');
+  const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    if (!address || !workers || !hours || !phone || !workType) {
+      toast({ title: 'Заполните все обязательные поля', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(JOBS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, workers: Number(workers), hours: Number(hours), price, phone, work_type: workType, comment }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: 'Заявка отправлена в чат!' });
+        onDone();
+      } else {
+        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Не удалось отправить', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Адрес объекта *" />
+      <div className="grid grid-cols-2 gap-3">
+        <Input value={workers} onChange={(e) => setWorkers(e.target.value)} placeholder="Кол-во рабочих *" type="number" min="1" />
+        <Input value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Рабочих часов *" type="number" min="1" />
+      </div>
+      <Input value={workType} onChange={(e) => setWorkType(e.target.value)} placeholder="Фронт работы * (напр. кладка кирпича)" />
+      <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Цена (напр. 5000 руб/день)" />
+      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер для связи *" className="font-mono" />
+      <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Дополнительный комментарий..." rows={2} />
+      <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
+        {loading ? 'Отправка...' : 'Отправить заявку в чат'}
+      </Button>
+    </div>
+  );
+};
+
 const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendMessage, onOpenAuth, chatEndRef }: Props) => {
   const myName = user ? (user.name || user.email) : null;
+  const [jobFormOpen, setJobFormOpen] = useState(false);
 
   return (
     <section id="chat" className="relative z-10 container mx-auto px-4 py-16">
-      <div className="flex items-center gap-3 mb-8">
-        <Icon name="MessageCircle" size={24} className="text-primary" />
-        <h2 className="text-2xl font-display font-bold">Общий чат</h2>
-        {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <Icon name="MessageCircle" size={24} className="text-primary" />
+          <h2 className="text-2xl font-display font-bold">Общий чат</h2>
+          {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
+        </div>
+        <Button onClick={() => setJobFormOpen(true)} variant="outline" className="rounded-xl font-semibold">
+          <Icon name="ClipboardList" size={16} />Подать заявку
+        </Button>
       </div>
+
       <div className="glass rounded-2xl overflow-hidden flex flex-col max-w-3xl mx-auto" style={{ height: '480px' }}>
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
@@ -42,7 +109,7 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
                   {!(myName && msg.user_name === myName) && (
                     <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
                   )}
-                  <p className="text-sm">{msg.text}</p>
+                  <p className="text-sm whitespace-pre-line">{msg.text}</p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 px-1">{msg.created_at}</p>
               </div>
@@ -72,6 +139,15 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
           )}
         </div>
       </div>
+
+      <Dialog open={jobFormOpen} onOpenChange={setJobFormOpen}>
+        <DialogContent className="glass border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Подать заявку на работу</DialogTitle>
+          </DialogHeader>
+          <JobForm onDone={() => setJobFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
