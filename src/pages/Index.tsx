@@ -205,10 +205,7 @@ const Index = () => {
         onCloseHint={closeHint}
       />
 
-      <ReviewsSection
-        feed={feed}
-        onOpenForm={openForm}
-      />
+
 
       <ChatSection
         user={user}
