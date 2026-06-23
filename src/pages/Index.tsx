@@ -2,126 +2,22 @@ import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 
-const API = 'https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f';
-const AUTH_API = 'https://functions.poehali.dev/d1b46d26-6b11-4be2-8267-1081db5bb482';
-const CHAT_API = 'https://functions.poehali.dev/4900b2e3-7dad-46ac-bb86-767cec0438f1';
-
-interface User { id: number; email: string; name: string; }
-
-const getToken = () => localStorage.getItem('ms_token') || '';
-const saveSession = (token: string, user: User) => {
-  localStorage.setItem('ms_token', token);
-  localStorage.setItem('ms_user', JSON.stringify(user));
-};
-const clearSession = () => {
-  localStorage.removeItem('ms_token');
-  localStorage.removeItem('ms_user');
-};
-
-const AuthDialog = ({ open, onClose, onAuth }: { open: boolean; onClose: () => void; onAuth: (user: User) => void }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [birthdate, setBirthdate] = useState('');
-  const [workDirection, setWorkDirection] = useState('');
-  const [organization, setOrganization] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const submit = async () => {
-    if (!email || !password) { toast({ title: 'Заполните email и пароль', variant: 'destructive' }); return; }
-    if (mode === 'register' && !name.trim()) { toast({ title: 'Укажите ФИО', variant: 'destructive' }); return; }
-    setLoading(true);
-    try {
-      const res = await fetch(AUTH_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: mode, email, password, name, birthdate, work_direction: workDirection, organization }),
-      });
-      const data = await res.json();
-      if (data.token) {
-        saveSession(data.token, data.user);
-        onAuth(data.user);
-        onClose();
-        toast({ title: mode === 'login' ? 'Добро пожаловать!' : 'Аккаунт создан!', description: data.user.email });
-      } else {
-        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
-      }
-    } catch {
-      toast({ title: 'Не удалось подключиться', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="glass border-border max-w-sm max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{mode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3 mt-2">
-          {mode === 'register' && (
-            <>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="ФИО *" />
-              <Input value={birthdate} onChange={(e) => setBirthdate(e.target.value)} placeholder="Дата рождения (ДД.ММ.ГГГГ)" />
-              <Input value={workDirection} onChange={(e) => setWorkDirection(e.target.value)} placeholder="Направление рабочего дома" />
-              <Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Название организации" />
-              <div className="border-t border-border pt-1" />
-            </>
-          )}
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email *" type="email" />
-          <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Пароль (минимум 6 символов) *" type="password"
-            onKeyDown={(e) => e.key === 'Enter' && submit()} />
-          <Button onClick={submit} disabled={loading} className="w-full font-semibold rounded-xl">
-            {loading ? '...' : mode === 'login' ? 'Войти' : 'Зарегистрироваться'}
-          </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            {mode === 'login' ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
-            <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="text-primary underline underline-offset-2">
-              {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
-            </button>
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+import AuthDialog from '@/components/app/AuthDialog';
+import ReviewForm from '@/components/app/ReviewForm';
+import ChatSection from '@/components/app/ChatSection';
+import {
+  API, AUTH_API, CHAT_API,
+  User, NumberRecord, Member, ChatMessage, Verdict,
+  verdictMeta, navItems,
+  getToken, clearSession,
+} from '@/components/app/types';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
-
-type Verdict = 'safe' | 'risky' | 'scam';
-
-interface NumberRecord {
-  phone: string;
-  rating: number;
-  reviews: number;
-  verdict: Verdict;
-  tags: string[];
-  lastReview: string;
-}
-
-const verdictMeta: Record<Verdict, { label: string; color: string; icon: string }> = {
-  safe: { label: 'Надёжный', color: 'text-success', icon: 'ShieldCheck' },
-  risky: { label: 'Осторожно', color: 'text-warning', icon: 'ShieldAlert' },
-  scam: { label: 'Мошенник', color: 'text-destructive', icon: 'ShieldX' },
-};
-
-const navItems = [
-  { id: 'check', label: 'Проверка', icon: 'Search' },
-  { id: 'reviews', label: 'Отзывы', icon: 'MessageSquare' },
-  { id: 'stats', label: 'Рейтинги', icon: 'BarChart3' },
-  { id: 'members', label: 'Участники', icon: 'Users' },
-  { id: 'chat', label: 'Чат', icon: 'MessageCircle' },
-  { id: 'support', label: 'Контакты', icon: 'LifeBuoy' },
-];
 
 const renderStars = (rating: number, size = 14) => (
   <div className="flex gap-0.5">
@@ -130,67 +26,6 @@ const renderStars = (rating: number, size = 14) => (
     ))}
   </div>
 );
-
-const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: () => void }) => {
-  const [phone, setPhone] = useState(defaultPhone || '');
-  const [rating, setRating] = useState(5);
-  const [author, setAuthor] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [address, setAddress] = useState('');
-  const [comment, setComment] = useState('');
-  const [tags, setTags] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const submit = async () => {
-    if (!phone.trim() || !comment.trim()) {
-      toast({ title: 'Заполните номер и текст отзыва', variant: 'destructive' });
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, rating, author, customer_name: customerName, object_address: address, comment, tags }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast({ title: 'Отзыв добавлен!', description: 'Спасибо, что помогаете сообществу.' });
-        onDone();
-      } else {
-        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
-      }
-    } catch {
-      toast({ title: 'Не удалось отправить', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер телефона" className="font-mono" />
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Оценка:</span>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <button key={i} type="button" onClick={() => setRating(i)}>
-            <Icon name="Star" size={24} className={i <= rating ? 'text-warning fill-warning' : 'text-muted'} />
-          </button>
-        ))}
-      </div>
-      <Input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Ваше имя (необязательно)" />
-      <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Имя заказчика" />
-      <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Адрес объекта (улица, город)" />
-      <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Теги через запятую: Платит вовремя, Адекватный" />
-      <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Опишите опыт работы с заказчиком..." rows={4} />
-      <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
-        {loading ? 'Отправка...' : 'Опубликовать отзыв'}
-      </Button>
-    </div>
-  );
-};
-
-interface Member { id: number; name: string; joined: string; work_direction: string; organization: string; }
 
 const Index = () => {
   const [query, setQuery] = useState('');
@@ -211,7 +46,7 @@ const Index = () => {
     try { return JSON.parse(localStorage.getItem('ms_user') || 'null'); } catch { return null; }
   });
   const [authOpen, setAuthOpen] = useState(false);
-  const [messages, setMessages] = useState<{id:number;user_name:string;text:string;created_at:string}[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatText, setChatText] = useState('');
   const [chatSending, setChatSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -571,7 +406,6 @@ const Index = () => {
             </div>
             {members.map((m, i) => (
               <div key={m.id} className={`px-5 py-4 ${i !== members.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/30 transition-colors`}>
-                {/* Desktop */}
                 <div className="hidden md:grid grid-cols-5 items-center gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -584,7 +418,6 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground truncate">{m.work_direction || '—'}</p>
                   <span className="text-sm text-muted-foreground">{m.joined}</span>
                 </div>
-                {/* Mobile */}
                 <div className="flex md:hidden items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
                     {(m.name || '?').charAt(0).toUpperCase()}
@@ -602,63 +435,16 @@ const Index = () => {
         )}
       </section>
 
-      <section id="chat" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="flex items-center gap-3 mb-8">
-          <Icon name="MessageCircle" size={24} className="text-primary" />
-          <h2 className="text-2xl font-display font-bold">Общий чат</h2>
-          {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
-        </div>
-        <div className="glass rounded-2xl overflow-hidden flex flex-col max-w-3xl mx-auto" style={{ height: '480px' }}>
-          {/* Сообщения */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <Icon name="MessageCircle" size={40} className="mb-3 opacity-30" />
-                <p className="text-sm">Пока нет сообщений. Начните общение!</p>
-              </div>
-            )}
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-3 ${user && msg.user_name === (user.name || user.email) ? 'flex-row-reverse' : ''}`}>
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                  {(msg.user_name || '?').charAt(0).toUpperCase()}
-                </div>
-                <div className={`max-w-[75%] ${user && msg.user_name === (user.name || user.email) ? 'items-end' : 'items-start'} flex flex-col`}>
-                  <div className={`rounded-2xl px-4 py-2 ${user && msg.user_name === (user.name || user.email) ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
-                    {!(user && msg.user_name === (user.name || user.email)) && (
-                      <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
-                    )}
-                    <p className="text-sm">{msg.text}</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 px-1">{msg.created_at}</p>
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-          {/* Поле ввода */}
-          <div className="border-t border-border p-3 flex gap-2">
-            {user ? (
-              <>
-                <input
-                  value={chatText}
-                  onChange={(e) => setChatText(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  placeholder="Написать сообщение..."
-                  className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
-                  maxLength={1000}
-                />
-                <Button onClick={sendMessage} disabled={chatSending || !chatText.trim()} className="rounded-xl px-4 shrink-0">
-                  <Icon name="Send" size={16} />
-                </Button>
-              </>
-            ) : (
-              <button onClick={() => setAuthOpen(true)} className="w-full text-center text-sm text-muted-foreground py-2 hover:text-primary transition-colors">
-                Войдите в аккаунт чтобы писать в чат →
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
+      <ChatSection
+        user={user}
+        messages={messages}
+        chatText={chatText}
+        chatSending={chatSending}
+        setChatText={setChatText}
+        sendMessage={sendMessage}
+        onOpenAuth={() => setAuthOpen(true)}
+        chatEndRef={chatEndRef}
+      />
 
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">
         <div className="glass rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto">
@@ -676,7 +462,6 @@ const Index = () => {
         <p>© 2026 Микс Строй — проверка номеров заказчиков</p>
       </footer>
 
-      {/* PWA Install Banner */}
       {!installBannerClosed && !isStandalone && (installPrompt || isIos) && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-fade-up">
           <div className="glass rounded-2xl p-4 glow-primary flex items-center gap-4">
