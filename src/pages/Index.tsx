@@ -97,7 +97,10 @@ const Index = () => {
   useEffect(() => { loadMessages(); }, []);
 
   useEffect(() => {
-    const interval = setInterval(loadMessages, 5000);
+    // Опрашиваем только когда вкладка активна — экономим вызовы
+    const interval = setInterval(() => {
+      if (!document.hidden) loadMessages();
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 
