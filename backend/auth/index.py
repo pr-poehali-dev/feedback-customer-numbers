@@ -188,7 +188,7 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Нет доступа'}, ensure_ascii=False)}
         cur.execute(
             "SELECT id, name, email, work_direction, organization, created_at FROM users "
-            "WHERE is_approved = FALSE ORDER BY created_at DESC"
+            "WHERE is_approved = FALSE AND (is_hidden IS NULL OR is_hidden = FALSE) ORDER BY created_at DESC"
         )
         rows = cur.fetchall()
         users = [
@@ -211,9 +211,9 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Нет доступа'}, ensure_ascii=False)}
         user_id = int(body.get('user_id', 0))
         if action == 'approve_user':
-            cur.execute("UPDATE users SET is_approved = TRUE WHERE id = %s" % user_id)
+            cur.execute("UPDATE users SET is_approved = TRUE, is_hidden = FALSE WHERE id = %s" % user_id)
         else:
-            cur.execute("UPDATE users SET is_hidden = TRUE WHERE id = %s" % user_id)
+            cur.execute("UPDATE users SET is_hidden = TRUE, is_approved = FALSE WHERE id = %s" % user_id)
         conn.commit()
         return {'statusCode': 200, 'headers': _cors(), 'body': json.dumps({'ok': True})}
 
