@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 
 const API = 'https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f';
 const AUTH_API = 'https://functions.poehali.dev/d1b46d26-6b11-4be2-8267-1081db5bb482';
+const CHAT_API = 'https://functions.poehali.dev/4900b2e3-7dad-46ac-bb86-767cec0438f1';
 
 interface User { id: number; email: string; name: string; }
 
@@ -118,6 +119,7 @@ const navItems = [
   { id: 'reviews', label: 'Отзывы', icon: 'MessageSquare' },
   { id: 'stats', label: 'Рейтинги', icon: 'BarChart3' },
   { id: 'members', label: 'Участники', icon: 'Users' },
+  { id: 'chat', label: 'Чат', icon: 'MessageCircle' },
   { id: 'support', label: 'Контакты', icon: 'LifeBuoy' },
 ];
 
@@ -209,6 +211,10 @@ const Index = () => {
     try { return JSON.parse(localStorage.getItem('ms_user') || 'null'); } catch { return null; }
   });
   const [authOpen, setAuthOpen] = useState(false);
+  const [messages, setMessages] = useState<{id:number;user_name:string;text:string;created_at:string}[]>([]);
+  const [chatText, setChatText] = useState('');
+  const [chatSending, setChatSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
@@ -235,7 +241,49 @@ const Index = () => {
     }
   };
 
-  useEffect(() => { loadFeed(); loadMembers(); }, []);
+  const loadMessages = async () => {
+    try {
+      const res = await fetch(CHAT_API);
+      const data = await res.json();
+      setMessages(data.messages || []);
+    } catch { /* тихо */ }
+  };
+
+  const sendMessage = async () => {
+    if (!chatText.trim()) return;
+    if (!user) { setAuthOpen(true); return; }
+    setChatSending(true);
+    try {
+      const res = await fetch(CHAT_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify({ text: chatText.trim() }),
+      });
+      const data = await res.json();
+      if (data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        setChatText('');
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+      } else {
+        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Не удалось отправить', variant: 'destructive' });
+    } finally {
+      setChatSending(false);
+    }
+  };
+
+  useEffect(() => { loadFeed(); loadMembers(); loadMessages(); }, []);
+
+  useEffect(() => {
+    const interval = setInterval(loadMessages, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const loadMembers = async () => {
     try {
@@ -552,6 +600,64 @@ const Index = () => {
             ))}
           </div>
         )}
+      </section>
+
+      <section id="chat" className="relative z-10 container mx-auto px-4 py-16">
+        <div className="flex items-center gap-3 mb-8">
+          <Icon name="MessageCircle" size={24} className="text-primary" />
+          <h2 className="text-2xl font-display font-bold">Общий чат</h2>
+          {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
+        </div>
+        <div className="glass rounded-2xl overflow-hidden flex flex-col max-w-3xl mx-auto" style={{ height: '480px' }}>
+          {/* Сообщения */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <Icon name="MessageCircle" size={40} className="mb-3 opacity-30" />
+                <p className="text-sm">Пока нет сообщений. Начните общение!</p>
+              </div>
+            )}
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex gap-3 ${user && msg.user_name === (user.name || user.email) ? 'flex-row-reverse' : ''}`}>
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                  {(msg.user_name || '?').charAt(0).toUpperCase()}
+                </div>
+                <div className={`max-w-[75%] ${user && msg.user_name === (user.name || user.email) ? 'items-end' : 'items-start'} flex flex-col`}>
+                  <div className={`rounded-2xl px-4 py-2 ${user && msg.user_name === (user.name || user.email) ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
+                    {!(user && msg.user_name === (user.name || user.email)) && (
+                      <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
+                    )}
+                    <p className="text-sm">{msg.text}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 px-1">{msg.created_at}</p>
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+          {/* Поле ввода */}
+          <div className="border-t border-border p-3 flex gap-2">
+            {user ? (
+              <>
+                <input
+                  value={chatText}
+                  onChange={(e) => setChatText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  placeholder="Написать сообщение..."
+                  className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
+                  maxLength={1000}
+                />
+                <Button onClick={sendMessage} disabled={chatSending || !chatText.trim()} className="rounded-xl px-4 shrink-0">
+                  <Icon name="Send" size={16} />
+                </Button>
+              </>
+            ) : (
+              <button onClick={() => setAuthOpen(true)} className="w-full text-center text-sm text-muted-foreground py-2 hover:text-primary transition-colors">
+                Войдите в аккаунт чтобы писать в чат →
+              </button>
+            )}
+          </div>
+        </div>
       </section>
 
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">

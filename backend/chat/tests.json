@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Получить сообщения",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"messages": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Отправить без авторизации",
+      "method": "POST",
+      "path": "/",
+      "body": {"text": "Привет"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
