@@ -49,7 +49,9 @@ def handler(event: dict, context) -> dict:
 
     # POST — отправить сообщение
     if method == 'POST':
-        token = (event.get('headers') or {}).get('X-Authorization', '').replace('Bearer ', '').strip()
+        headers = event.get('headers') or {}
+        raw_token = headers.get('X-Authorization') or headers.get('Authorization') or headers.get('authorization') or ''
+        token = raw_token.replace('Bearer ', '').replace('bearer ', '').strip()
         if not token:
             return {'statusCode': 401, 'headers': _cors(),
                     'body': json.dumps({'error': 'Необходимо войти в аккаунт'}, ensure_ascii=False)}
