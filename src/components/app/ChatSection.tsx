@@ -122,25 +122,17 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
           <div ref={chatEndRef} />
         </div>
         <div className="border-t border-border p-3 flex gap-2">
-          {user ? (
-            <>
-              <input
-                value={chatText}
-                onChange={(e) => setChatText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Написать сообщение..."
-                className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
-                maxLength={1000}
-              />
-              <Button onClick={sendMessage} disabled={chatSending || !chatText.trim()} className="rounded-xl px-4 shrink-0">
-                <Icon name="Send" size={16} />
-              </Button>
-            </>
-          ) : (
-            <button onClick={onOpenAuth} className="w-full text-center text-sm text-muted-foreground py-2 hover:text-primary transition-colors">
-              Войдите в аккаунт чтобы писать в чат →
-            </button>
-          )}
+          <input
+            value={chatText}
+            onChange={(e) => setChatText(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+            placeholder="Написать сообщение..."
+            className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
+            maxLength={1000}
+          />
+          <Button onClick={sendMessage} disabled={chatSending || !chatText.trim()} className="rounded-xl px-4 shrink-0">
+            <Icon name="Send" size={16} />
+          </Button>
         </div>
       </div>
 

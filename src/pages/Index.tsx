@@ -82,9 +82,7 @@ const Index = () => {
 
   const sendMessage = async () => {
     if (!chatText.trim()) return;
-    if (!user) { setAuthOpen(true); return; }
     const token = getToken();
-    console.log('[chat] user:', user, 'token:', token);
     setChatSending(true);
     const textToSend = chatText.trim();
     setChatText('');
@@ -163,7 +161,6 @@ const Index = () => {
   };
 
   const openForm = (phone?: string) => {
-    if (!user) { setAuthOpen(true); return; }
     setFormPhone(phone); setFormOpen(true);
   };
   const afterSubmit = () => { setFormOpen(false); loadFeed(); if (query) handleSearch(); };

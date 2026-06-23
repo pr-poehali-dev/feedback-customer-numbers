@@ -52,26 +52,21 @@ def handler(event: dict, context) -> dict:
         headers = event.get('headers') or {}
         raw_token = headers.get('X-Authorization') or headers.get('Authorization') or headers.get('authorization') or ''
         token = raw_token.replace('Bearer ', '').replace('bearer ', '').strip()
-        if not token:
-            return {'statusCode': 401, 'headers': _cors(),
-                    'body': json.dumps({'error': 'Необходимо войти в аккаунт'}, ensure_ascii=False)}
-        user = _get_user(cur, token)
-        if not user:
-            return {'statusCode': 401, 'headers': _cors(),
-                    'body': json.dumps({'error': 'Сессия истекла, войдите снова'}, ensure_ascii=False)}
+        user = _get_user(cur, token) if token else None
+        user_id = user[0] if user else None
+        user_name = user[1] if user else 'Гость'
 
         body = json.loads(event.get('body') or '{}')
         text = (body.get('text') or '').strip()[:1000]
         if not text:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Сообщение не может быть пустым'}, ensure_ascii=False)}
-
-        user_id, user_name = user
-        name_esc = (user_name or 'Участник').replace("'", "''")
+        name_esc = (user_name or 'Гость').replace("'", "''")
         text_esc = text.replace("'", "''")
+        uid_val = str(user_id) if user_id else 'NULL'
         cur.execute(
             "INSERT INTO messages (user_id, user_name, text) VALUES (%s, '%s', '%s') RETURNING id, created_at"
-            % (user_id, name_esc, text_esc)
+            % (uid_val, name_esc, text_esc)
         )
         row = cur.fetchone()
         conn.commit()
