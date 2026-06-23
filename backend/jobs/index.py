@@ -81,16 +81,17 @@ def handler(event: dict, context) -> dict:
         row = cur.fetchone()
 
         # Формируем сообщение в общий чат
-        lines = ['📋 НОВАЯ ЗАЯВКА НА РАБОТУ']
-        lines.append('🔨 Фронт работы: %s' % work_type)
-        lines.append('📍 Адрес: %s' % address)
-        lines.append('👷 Рабочих: %s чел.' % workers)
-        lines.append('⏱ Часов: %s' % hours)
+        n = 1
+        lines = ['📋 НОВАЯ ЗАЯВКА НА РАБОТУ', '']
+        lines.append('%d. %s' % (n, address)); n += 1
+        lines.append('%d. %s чел.' % (n, workers)); n += 1
+        lines.append('%d. %s рабочих часов' % (n, int(hours) if hours == int(hours) else hours)); n += 1
+        lines.append('%d. %s' % (n, work_type)); n += 1
         if price:
-            lines.append('💰 Цена: %s' % price)
-        lines.append('📞 Тел: %s' % phone)
+            lines.append('%d. %s' % (n, price)); n += 1
+        lines.append('%d. %s' % (n, phone)); n += 1
         if comment:
-            lines.append('💬 %s' % comment)
+            lines.append('%d. %s' % (n, comment))
         chat_text = '\n'.join(lines)
         chat_esc = chat_text.replace("'", "''")
         cur.execute(
