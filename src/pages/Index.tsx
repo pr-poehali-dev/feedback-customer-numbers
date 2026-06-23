@@ -61,28 +61,37 @@ const Index = () => {
     setChatSending(true);
     const textToSend = chatText.trim();
     setChatText('');
-    try {
-      const res = await fetch(CHAT_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToSend }),
-      });
-      const data = await res.json();
-      if (data.message) {
-        setMessages((prev) => [...prev, data.message]);
-        setTimeout(() => {
-          const container = chatEndRef.current?.parentElement;
-          if (container) container.scrollTop = container.scrollHeight;
-        }, 50);
-      } else {
-        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+
+    // До 3 попыток при нестабильной сети
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch(CHAT_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: textToSend }),
+        });
+        const data = await res.json();
+        if (data.message) {
+          setMessages((prev) => [...prev, data.message]);
+          setTimeout(() => {
+            const container = chatEndRef.current?.parentElement;
+            if (container) container.scrollTop = container.scrollHeight;
+          }, 50);
+        } else {
+          toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+        }
+        setChatSending(false);
+        return;
+      } catch {
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 800));
+          continue;
+        }
+        setChatText(textToSend);
+        toast({ title: 'Нет связи с сервером', description: 'Проверьте интернет и попробуйте снова', variant: 'destructive' });
       }
-    } catch {
-      setChatText(textToSend);
-      toast({ title: 'Не удалось отправить', variant: 'destructive' });
-    } finally {
-      setChatSending(false);
     }
+    setChatSending(false);
   };
 
   useEffect(() => { loadMessages(); }, []);
