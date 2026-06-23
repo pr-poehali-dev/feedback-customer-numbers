@@ -8,6 +8,7 @@ import AppHeader from '@/components/app/AppHeader';
 import CheckSection from '@/components/app/CheckSection';
 import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
+import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage } from '@/components/app/types';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -16,6 +17,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const Index = () => {
+  const [participant, setParticipant] = useState<Participant | null>(null);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<NumberRecord | null>(null);
   const [searched, setSearched] = useState(false);
@@ -116,15 +118,16 @@ const Index = () => {
     }
   };
 
-  const openForm = (phone?: string) => { setFormPhone(phone); setFormOpen(true); };
   const afterSubmit = () => { setFormOpen(false); if (query) handleSearch(); };
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
 
   return (
+    <ParticipantGate onReady={setParticipant}>
+      {(requireParticipant: (action: () => void) => void) => (
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      <AppHeader onOpenForm={() => openForm()} />
+      <AppHeader onOpenForm={() => requireParticipant(() => { setFormOpen(true); })} />
 
       <CheckSection
         query={query}
@@ -136,7 +139,7 @@ const Index = () => {
         tracked={tracked}
         onSearch={handleSearch}
         onToggleTrack={toggleTrack}
-        onOpenForm={openForm}
+        onOpenForm={(phone) => requireParticipant(() => { setFormPhone(phone); setFormOpen(true); })}
         onCloseHint={closeHint}
       />
 
@@ -149,6 +152,7 @@ const Index = () => {
         sendMessage={sendMessage}
         onOpenAuth={() => {}}
         chatEndRef={chatEndRef}
+        onRequireParticipant={requireParticipant}
       />
 
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">
@@ -206,6 +210,8 @@ const Index = () => {
         </DialogContent>
       </Dialog>
     </div>
+      )}
+    </ParticipantGate>
   );
 };
 

@@ -18,6 +18,7 @@ interface Props {
   sendMessage: () => void;
   onOpenAuth: () => void;
   chatEndRef: React.RefObject<HTMLDivElement>;
+  onRequireParticipant?: (action: () => void) => void;
 }
 
 const JobForm = ({ onDone }: { onDone: () => void }) => {
@@ -74,9 +75,16 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
-const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendMessage, onOpenAuth, chatEndRef }: Props) => {
+const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendMessage, onOpenAuth, chatEndRef, onRequireParticipant }: Props) => {
   const myName = user ? (user.name || user.email) : null;
   const [jobFormOpen, setJobFormOpen] = useState(false);
+  const openJobForm = () => {
+    if (onRequireParticipant) {
+      onRequireParticipant(() => setJobFormOpen(true));
+    } else {
+      setJobFormOpen(true);
+    }
+  };
 
   return (
     <section id="chat" className="relative z-10 container mx-auto px-4 py-16">
@@ -87,7 +95,7 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
       </div>
 
       <div className="flex justify-center mb-6">
-        <Button onClick={() => setJobFormOpen(true)} className="rounded-xl font-semibold px-8 py-3 text-base">
+        <Button onClick={openJobForm} className="rounded-xl font-semibold px-8 py-3 text-base">
           <Icon name="ClipboardList" size={18} />Подать заявку
         </Button>
       </div>

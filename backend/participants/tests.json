@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Регистрация участника",
+      "method": "POST",
+      "path": "/",
+      "body": {"full_name": "Иван Иванов", "organization": "ООО Строй", "work_direction": "Кладка", "phone": "+79001111111"},
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Проверка по телефону",
+      "method": "GET",
+      "path": "/?phone=%2B79001111111",
+      "expectedStatus": 200,
+      "expectedBody": {"found": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
