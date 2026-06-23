@@ -70,7 +70,10 @@ const Index = () => {
       const data = await res.json();
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
-        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+        setTimeout(() => {
+          const container = chatEndRef.current?.parentElement;
+          if (container) container.scrollTop = container.scrollHeight;
+        }, 50);
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
       }
@@ -88,10 +91,6 @@ const Index = () => {
     const interval = setInterval(loadMessages, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
