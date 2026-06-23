@@ -142,7 +142,7 @@ def handler(event: dict, context) -> dict:
 
     # Список участников
     if action == 'members':
-        cur.execute("SELECT id, name, created_at, work_direction, organization FROM users ORDER BY created_at DESC")
+        cur.execute("SELECT id, name, created_at, work_direction, organization FROM users WHERE is_hidden IS NOT TRUE ORDER BY created_at DESC")
         rows = cur.fetchall()
         members = [
             {
