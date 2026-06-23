@@ -103,7 +103,7 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
       <div className="flex flex-col lg:flex-row gap-6 items-start max-w-6xl mx-auto">
 
       {/* Чат */}
-      <div className="glass rounded-2xl overflow-hidden flex flex-col flex-1 w-full" style={{ height: '480px' }}>
+      <div className="glass rounded-2xl overflow-hidden flex flex-col flex-1 w-full h-[75vh] lg:h-[600px]">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
