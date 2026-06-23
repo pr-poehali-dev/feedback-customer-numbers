@@ -170,6 +170,23 @@ const Index = () => {
               <Icon name="Plus" size={15} />
               <span className="hidden sm:inline">Отзыв</span>
             </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-lg font-medium"
+              onClick={() => {
+                const url = window.location.href;
+                if (navigator.share) {
+                  navigator.share({ title: 'NumCheck — проверка номеров заказчиков', url });
+                } else {
+                  navigator.clipboard.writeText(url);
+                  toast({ title: 'Ссылка скопирована!', description: 'Отправьте её друзьям или коллегам.' });
+                }
+              }}
+            >
+              <Icon name="Share2" size={15} />
+              <span className="hidden sm:inline">Поделиться</span>
+            </Button>
             <Button size="sm" className="rounded-lg font-medium">
               <Icon name="Bell" size={15} />
               {tracked.length > 0 && <span className="ml-1">{tracked.length}</span>}
