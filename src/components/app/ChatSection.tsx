@@ -91,7 +91,10 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
         </Button>
       </div>
 
-      <div className="glass rounded-2xl overflow-hidden flex flex-col max-w-3xl mx-auto" style={{ height: '480px' }}>
+      <div className="flex flex-col lg:flex-row gap-6 items-start max-w-6xl mx-auto">
+
+      {/* Чат */}
+      <div className="glass rounded-2xl overflow-hidden flex flex-col flex-1 w-full" style={{ height: '480px' }}>
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -139,6 +142,61 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
           )}
         </div>
       </div>
+
+      {/* Правила — справа от чата */}
+      <div className="w-full lg:w-80 shrink-0 space-y-3 text-left">
+        <div className="border border-primary/50 rounded-2xl bg-primary/5 px-4 py-3 flex items-start gap-2">
+          <Icon name="AlertTriangle" size={16} className="text-primary shrink-0 mt-0.5" />
+          <p className="font-bold text-xs text-primary">Кто взял заявку — отписывайтесь в назначенное время, будьте на связи!</p>
+        </div>
+
+        <div className="border border-primary/30 rounded-2xl overflow-hidden">
+          <div className="bg-primary/10 px-4 py-2">
+            <p className="font-bold text-xs uppercase tracking-wide text-primary">Правила для исполнителей</p>
+          </div>
+          <div className="px-4 py-3 space-y-2">
+            <div className="flex gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
+              <p className="text-xs">Полный отчёт с утра тому, у кого взяли заявку.</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
+              <div className="text-xs space-y-1">
+                <p>Относитесь к заявке с ответственностью — все мы зарабатываем!</p>
+                <p className="text-destructive font-semibold">Не ставьте кривых и пьяных!</p>
+                <p>Если минус на объекте — <span className="font-semibold">сразу</span> отпишитесь. Не надейтесь, что прокатит!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-primary/30 rounded-2xl overflow-hidden">
+          <div className="bg-primary/10 px-4 py-2">
+            <p className="font-bold text-xs uppercase tracking-wide text-primary">Правила для диспетчеров</p>
+          </div>
+          <div className="px-4 py-3 space-y-2">
+            <div className="flex gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
+              <p className="text-xs">Будьте на связи с утра, контролируйте заявку — вы становитесь потенциальным заказчиком!</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
+              <div className="text-xs space-y-1">
+                <p>Переводите деньги сразу со своих средств, потом разбирайтесь с заказчиком.</p>
+                <p className="text-destructive font-semibold">«Подожди, мне ещё не перевели!» — недопустимо.</p>
+                <p>Люди отработали — оплати сразу!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-primary rounded-2xl bg-primary/10 px-4 py-3 text-center">
+          <p className="text-xs font-bold text-primary uppercase tracking-wide">Руководители · Диспетчера · Помощники</p>
+          <p className="text-xs mt-1 font-medium">Все мы работаем и зарабатываем вместе!</p>
+        </div>
+      </div>
+
+      </div>{/* конец flex-row */}
 
       <Dialog open={jobFormOpen} onOpenChange={setJobFormOpen}>
         <DialogContent className="glass border-border max-w-md">

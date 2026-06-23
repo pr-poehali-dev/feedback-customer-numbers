@@ -37,64 +37,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
       Узнай рейтинг и отзывы о номере до начала работы. Защити себя от мошенников и неплатёжеспособных клиентов.
     </p>
 
-    <div className="animate-fade-up max-w-2xl mx-auto mb-10 text-left space-y-4" style={{ animationDelay: '0.12s' }}>
 
-      {/* Общий призыв */}
-      <div className="border border-primary/50 rounded-2xl bg-primary/5 px-5 py-4 flex items-start gap-3">
-        <Icon name="AlertTriangle" size={18} className="text-primary shrink-0 mt-0.5" />
-        <p className="font-bold text-sm text-primary">Кто взял заявку — обязательно отписывайтесь в назначенное время, будьте на связи!</p>
-      </div>
-
-      {/* Правила для исполнителей */}
-      <div className="border border-primary/30 rounded-2xl overflow-hidden">
-        <div className="bg-primary/10 px-5 py-3">
-          <p className="font-bold text-sm uppercase tracking-wide text-primary">Правила для исполнителей</p>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          <div className="flex gap-3">
-            <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
-            <p className="text-sm">Полный отчёт с утра тому, у кого взяли заявку.</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
-            <div className="text-sm space-y-2">
-              <p>Если берёте заявку — относитесь к ней с большой ответственностью, все мы зарабатываем!</p>
-              <p className="text-destructive font-semibold">Не ставьте кривых и пьяных людей!</p>
-              <p>Диспетчеры из-за этого получают плохие отзывы на свои аккаунты, в которые вложено очень много сил и средств.</p>
-              <p>Если у вас минус на объекте — <span className="font-semibold">немедленно</span> отписывайтесь об этом человеку, у которого взяли заявку. Не надо надеяться, что прокатит!</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Правила для диспетчеров */}
-      <div className="border border-primary/30 rounded-2xl overflow-hidden">
-        <div className="bg-primary/10 px-5 py-3">
-          <p className="font-bold text-sm uppercase tracking-wide text-primary">Правила для диспетчеров</p>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          <div className="flex gap-3">
-            <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
-            <p className="text-sm">Будьте на связи с утра, контролируйте процесс заявки, которую отдали — ведь вы становитесь потенциальным заказчиком!</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
-            <div className="text-sm space-y-2">
-              <p>Переводите деньги со своих средств, а потом разбирайтесь со своими заказчиками.</p>
-              <p className="text-destructive font-semibold">«Подожди, мне заказчик ещё не перевёл!» — так делать нельзя.</p>
-              <p>Люди отработали — будь добр, сразу оплати. Есть люди, которым нужно платить каждый день!</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Итоговый девиз */}
-      <div className="border border-primary rounded-2xl bg-primary/10 px-5 py-4 text-center">
-        <p className="text-sm font-bold text-primary tracking-wide uppercase">Руководители · Диспетчера · Помощники</p>
-        <p className="text-sm mt-1 text-foreground font-medium">Все мы работаем и зарабатываем вместе!</p>
-      </div>
-
-    </div>
 
     {!hintClosed && (
       <div className="animate-fade-up max-w-2xl mx-auto mb-8" style={{ animationDelay: '0.2s' }}>
