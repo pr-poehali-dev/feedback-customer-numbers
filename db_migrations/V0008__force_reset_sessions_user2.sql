@@ -1,0 +1,2 @@
+UPDATE sessions SET expires_at = NOW() WHERE user_id = 2;
+INSERT INTO sessions (user_id, token, expires_at) VALUES (2, 'reset-force-login-' || extract(epoch from now())::text, NOW() + INTERVAL '30 days');
