@@ -96,7 +96,7 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
 
       <div className="flex justify-center mb-6">
         <Button onClick={openJobForm} className="rounded-xl font-semibold px-8 py-3 text-base">
-          <Icon name="ClipboardList" size={18} />Подать заявку
+          <Icon name="ClipboardList" size={18} />Размещение заказов
         </Button>
       </div>
 
@@ -202,7 +202,7 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
       <Dialog open={jobFormOpen} onOpenChange={setJobFormOpen}>
         <DialogContent className="glass border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">Подать заявку на работу</DialogTitle>
+            <DialogTitle className="font-display">Размещение заказов</DialogTitle>
           </DialogHeader>
           <JobForm onDone={() => setJobFormOpen(false)} />
         </DialogContent>
