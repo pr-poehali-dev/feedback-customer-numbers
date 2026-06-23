@@ -120,7 +120,6 @@ def handler(event: dict, context) -> dict:
             {
                 'id': r[0],
                 'name': r[1] or '',
-                'email': r[2],
                 'joined': r[3].strftime('%d.%m.%Y') if r[3] else '',
             }
             for r in rows

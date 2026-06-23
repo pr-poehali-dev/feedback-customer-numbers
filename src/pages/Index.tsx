@@ -178,7 +178,7 @@ const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: (
   );
 };
 
-interface Member { id: number; name: string; email: string; joined: string; }
+interface Member { id: number; name: string; joined: string; }
 
 const Index = () => {
   const [query, setQuery] = useState('');
@@ -513,13 +513,12 @@ const Index = () => {
               <div key={m.id} className={`grid grid-cols-3 px-5 py-4 items-center ${i !== members.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/30 transition-colors`}>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                    {(m.name || m.email).charAt(0).toUpperCase()}
+                    {(m.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <span className="text-sm text-muted-foreground">{i + 1}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-sm truncate">{m.name || 'Без имени'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{m.email}</p>
+                  <p className="font-medium text-sm truncate">{m.name || 'Участник'}</p>
                 </div>
                 <span className="text-sm text-muted-foreground">{m.joined}</span>
               </div>
