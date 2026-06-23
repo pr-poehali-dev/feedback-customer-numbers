@@ -104,6 +104,7 @@ const Index = () => {
   const [feed, setFeed] = useState<NumberRecord[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [formPhone, setFormPhone] = useState<string | undefined>();
+  const [hintClosed, setHintClosed] = useState(() => !!localStorage.getItem('numcheck_hint_closed'));
 
   const loadFeed = async () => {
     try {
@@ -142,6 +143,7 @@ const Index = () => {
 
   const openForm = (phone?: string) => { setFormPhone(phone); setFormOpen(true); };
   const afterSubmit = () => { setFormOpen(false); loadFeed(); if (query) handleSearch(); };
+  const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -187,6 +189,40 @@ const Index = () => {
         <p className="animate-fade-up text-muted-foreground max-w-xl mx-auto mb-10 text-lg" style={{ animationDelay: '0.1s' }}>
           Узнай рейтинг и отзывы о номере до начала работы. Защити себя от мошенников и неплатёжеспособных клиентов.
         </p>
+
+        {!hintClosed && (
+          <div className="animate-fade-up max-w-2xl mx-auto mb-8" style={{ animationDelay: '0.2s' }}>
+            <div className="glass rounded-2xl p-5 relative">
+              <button onClick={closeHint} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors">
+                <Icon name="X" size={16} />
+              </button>
+              <p className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
+                <Icon name="Lightbulb" size={16} />
+                Как пользоваться NumCheck
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                {[
+                  { icon: 'Search', step: '1', title: 'Введите номер', desc: 'Вставьте телефон заказчика в строку поиска и нажмите «Проверить»' },
+                  { icon: 'ShieldCheck', step: '2', title: 'Смотрите результат', desc: 'Вы увидите рейтинг, вердикт и отзывы других исполнителей' },
+                  { icon: 'Plus', step: '3', title: 'Оставьте отзыв', desc: 'Поделитесь своим опытом — помогите другим не попасть на мошенника' },
+                ].map((item) => (
+                  <div key={item.step} className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon name={item.icon} size={16} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{item.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={closeHint} className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2">
+                Понятно, больше не показывать
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="animate-fade-up max-w-xl mx-auto" style={{ animationDelay: '0.15s' }}>
           <div className="glass rounded-2xl p-2 flex items-center gap-2">
