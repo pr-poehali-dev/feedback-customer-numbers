@@ -112,4 +112,20 @@ def handler(event: dict, context) -> dict:
             conn.commit()
         return {'statusCode': 200, 'headers': _cors(), 'body': json.dumps({'ok': True}), 'isBase64Encoded': False}
 
+    # Список участников
+    if action == 'members':
+        cur.execute("SELECT id, name, email, created_at FROM users ORDER BY created_at DESC")
+        rows = cur.fetchall()
+        members = [
+            {
+                'id': r[0],
+                'name': r[1] or '',
+                'email': r[2],
+                'joined': r[3].strftime('%d.%m.%Y') if r[3] else '',
+            }
+            for r in rows
+        ]
+        return {'statusCode': 200, 'headers': _cors(),
+                'body': json.dumps({'members': members}, ensure_ascii=False)}
+
     return {'statusCode': 400, 'headers': _cors(), 'body': json.dumps({'error': 'Неизвестное действие'})}

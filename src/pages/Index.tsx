@@ -107,6 +107,7 @@ const navItems = [
   { id: 'check', label: 'Проверка', icon: 'Search' },
   { id: 'reviews', label: 'Отзывы', icon: 'MessageSquare' },
   { id: 'stats', label: 'Рейтинги', icon: 'BarChart3' },
+  { id: 'members', label: 'Участники', icon: 'Users' },
   { id: 'support', label: 'Контакты', icon: 'LifeBuoy' },
 ];
 
@@ -177,6 +178,8 @@ const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: (
   );
 };
 
+interface Member { id: number; name: string; email: string; joined: string; }
+
 const Index = () => {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<NumberRecord | null>(null);
@@ -184,6 +187,7 @@ const Index = () => {
   const [searching, setSearching] = useState(false);
   const [tracked, setTracked] = useState<string[]>([]);
   const [feed, setFeed] = useState<NumberRecord[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [formPhone, setFormPhone] = useState<string | undefined>();
   const [hintClosed, setHintClosed] = useState(() => !!localStorage.getItem('numcheck_hint_closed'));
@@ -221,7 +225,21 @@ const Index = () => {
     }
   };
 
-  useEffect(() => { loadFeed(); }, []);
+  useEffect(() => { loadFeed(); loadMembers(); }, []);
+
+  const loadMembers = async () => {
+    try {
+      const res = await fetch(AUTH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'members' }),
+      });
+      const data = await res.json();
+      setMembers(data.members || []);
+    } catch {
+      setMembers([]);
+    }
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -474,6 +492,40 @@ const Index = () => {
             </div>
           ))}
         </div>
+      </section>
+
+      <section id="members" className="relative z-10 container mx-auto px-4 py-16">
+        <div className="flex items-center gap-3 mb-8">
+          <Icon name="Users" size={24} className="text-primary" />
+          <h2 className="text-2xl font-display font-bold">Участники</h2>
+          <span className="text-sm text-muted-foreground ml-1">({members.length})</span>
+        </div>
+        {members.length === 0 ? (
+          <p className="text-muted-foreground">Пока никто не зарегистрировался. Будьте первым!</p>
+        ) : (
+          <div className="glass rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-3 px-5 py-3 text-xs text-muted-foreground border-b border-border font-semibold uppercase tracking-wide">
+              <span>#</span>
+              <span>Имя</span>
+              <span>Дата входа</span>
+            </div>
+            {members.map((m, i) => (
+              <div key={m.id} className={`grid grid-cols-3 px-5 py-4 items-center ${i !== members.length - 1 ? 'border-b border-border' : ''} hover:bg-secondary/30 transition-colors`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                    {(m.name || m.email).charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-muted-foreground">{i + 1}</span>
+                </div>
+                <div>
+                  <p className="font-medium text-sm truncate">{m.name || 'Без имени'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{m.email}</p>
+                </div>
+                <span className="text-sm text-muted-foreground">{m.joined}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">
