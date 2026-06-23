@@ -1,6 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
+
+const API = 'https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f';
 
 type Verdict = 'safe' | 'risky' | 'scam';
 
@@ -12,13 +18,6 @@ interface NumberRecord {
   tags: string[];
   lastReview: string;
 }
-
-const DATABASE: NumberRecord[] = [
-  { phone: '+7 (912) 345-67-89', rating: 4.7, reviews: 128, verdict: 'safe', tags: ['Платит вовремя', 'Адекватный'], lastReview: 'Отличный заказчик, оплата без задержек.' },
-  { phone: '+7 (903) 222-11-00', rating: 2.1, reviews: 64, verdict: 'risky', tags: ['Задержки оплаты', 'Меняет ТЗ'], lastReview: 'Долго тянул с оплатой, в итоге заплатил не всё.' },
-  { phone: '+7 (495) 777-88-99', rating: 1.2, reviews: 211, verdict: 'scam', tags: ['Не платит', 'Кидала'], lastReview: 'Пропал после сдачи работы. Деньги не отдал.' },
-  { phone: '+7 (921) 100-50-30', rating: 4.9, reviews: 342, verdict: 'safe', tags: ['Топ заказчик', 'Рекомендую'], lastReview: 'Работаю не первый раз — всё чётко.' },
-];
 
 const verdictMeta: Record<Verdict, { label: string; color: string; icon: string }> = {
   safe: { label: 'Надёжный', color: 'text-success', icon: 'ShieldCheck' },
@@ -33,37 +32,121 @@ const navItems = [
   { id: 'support', label: 'Контакты', icon: 'LifeBuoy' },
 ];
 
+const renderStars = (rating: number, size = 14) => (
+  <div className="flex gap-0.5">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <Icon key={i} name="Star" size={size} className={i <= Math.round(rating) ? 'text-warning fill-warning' : 'text-muted'} />
+    ))}
+  </div>
+);
+
+const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: () => void }) => {
+  const [phone, setPhone] = useState(defaultPhone || '');
+  const [rating, setRating] = useState(5);
+  const [author, setAuthor] = useState('');
+  const [comment, setComment] = useState('');
+  const [tags, setTags] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    if (!phone.trim() || !comment.trim()) {
+      toast({ title: 'Заполните номер и текст отзыва', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, rating, author, comment, tags }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: 'Отзыв добавлен!', description: 'Спасибо, что помогаете сообществу.' });
+        onDone();
+      } else {
+        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Не удалось отправить', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер телефона" className="font-mono" />
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Оценка:</span>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <button key={i} type="button" onClick={() => setRating(i)}>
+            <Icon name="Star" size={24} className={i <= rating ? 'text-warning fill-warning' : 'text-muted'} />
+          </button>
+        ))}
+      </div>
+      <Input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Ваше имя (необязательно)" />
+      <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Теги через запятую: Платит вовремя, Адекватный" />
+      <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Опишите опыт работы с заказчиком..." rows={4} />
+      <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
+        {loading ? 'Отправка...' : 'Опубликовать отзыв'}
+      </Button>
+    </div>
+  );
+};
+
 const Index = () => {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<NumberRecord | null>(null);
   const [searched, setSearched] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [tracked, setTracked] = useState<string[]>([]);
+  const [feed, setFeed] = useState<NumberRecord[]>([]);
+  const [formOpen, setFormOpen] = useState(false);
+  const [formPhone, setFormPhone] = useState<string | undefined>();
 
-  const handleSearch = () => {
+  const loadFeed = async () => {
+    try {
+      const res = await fetch(API);
+      const data = await res.json();
+      setFeed(data.records || []);
+    } catch {
+      setFeed([]);
+    }
+  };
+
+  useEffect(() => { loadFeed(); }, []);
+
+  const handleSearch = async () => {
     if (!query.trim()) return;
-    const digits = query.replace(/\D/g, '');
-    const found = DATABASE.find((r) => r.phone.replace(/\D/g, '').includes(digits.slice(-7)) && digits.length >= 4);
-    setResult(found || null);
+    setSearching(true);
     setSearched(true);
+    try {
+      const res = await fetch(`${API}?phone=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setResult(data.found ? data.record : null);
+    } catch {
+      setResult(null);
+    } finally {
+      setSearching(false);
+    }
   };
 
   const toggleTrack = (phone: string) => {
-    setTracked((prev) => (prev.includes(phone) ? prev.filter((p) => p !== phone) : [...prev, phone]));
+    const isTracked = tracked.includes(phone);
+    setTracked((prev) => (isTracked ? prev.filter((p) => p !== phone) : [...prev, phone]));
+    if (!isTracked) {
+      toast({ title: 'Уведомления включены', description: `Сообщим о новых отзывах на ${phone}` });
+    }
   };
 
-  const renderStars = (rating: number) => (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Icon key={i} name="Star" size={14} className={i <= Math.round(rating) ? 'text-warning fill-warning' : 'text-muted'} />
-      ))}
-    </div>
-  );
+  const openForm = (phone?: string) => { setFormPhone(phone); setFormOpen(true); };
+  const afterSubmit = () => { setFormOpen(false); loadFeed(); if (query) handleSearch(); };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      {/* Header */}
       <header className="relative z-20 sticky top-0 glass">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <a href="#check" className="flex items-center gap-2">
@@ -80,18 +163,23 @@ const Index = () => {
               </a>
             ))}
           </nav>
-          <Button size="sm" className="rounded-lg font-medium">
-            <Icon name="Bell" size={15} />
-            {tracked.length > 0 && <span className="ml-1">{tracked.length}</span>}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => openForm()} size="sm" variant="outline" className="rounded-lg font-medium">
+              <Icon name="Plus" size={15} />
+              <span className="hidden sm:inline">Отзыв</span>
+            </Button>
+            <Button size="sm" className="rounded-lg font-medium">
+              <Icon name="Bell" size={15} />
+              {tracked.length > 0 && <span className="ml-1">{tracked.length}</span>}
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Hero / Check */}
       <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
         <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
-          База из 48 920 проверенных номеров
+          Живая база отзывов о заказчиках
         </div>
         <h1 className="animate-fade-up text-4xl md:text-6xl font-display font-bold tracking-tight mb-5" style={{ animationDelay: '0.05s' }}>
           Проверь заказчика<br /><span className="text-primary text-glow">за 1 секунду</span>
@@ -110,17 +198,12 @@ const Index = () => {
               placeholder="Введите номер телефона..."
               className="flex-1 bg-transparent outline-none font-mono text-base placeholder:text-muted-foreground"
             />
-            <Button onClick={handleSearch} className="rounded-xl px-6 font-semibold">Проверить</Button>
-          </div>
-          <div className="flex flex-wrap gap-2 justify-center mt-4 text-xs text-muted-foreground">
-            <span>Попробуйте:</span>
-            {DATABASE.slice(0, 2).map((r) => (
-              <button key={r.phone} onClick={() => { setQuery(r.phone); }} className="font-mono hover:text-primary transition-colors underline underline-offset-2">{r.phone}</button>
-            ))}
+            <Button onClick={handleSearch} disabled={searching} className="rounded-xl px-6 font-semibold">
+              {searching ? '...' : 'Проверить'}
+            </Button>
           </div>
         </div>
 
-        {/* Result */}
         {searched && (
           <div className="animate-fade-up max-w-xl mx-auto mt-8">
             {result ? (
@@ -144,46 +227,57 @@ const Index = () => {
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-3">«{result.lastReview}»</p>
-                <Button onClick={() => toggleTrack(result.phone)} variant={tracked.includes(result.phone) ? 'secondary' : 'outline'} className="w-full mt-4 rounded-xl">
-                  <Icon name={tracked.includes(result.phone) ? 'BellRing' : 'Bell'} size={16} />
-                  {tracked.includes(result.phone) ? 'Отслеживается — уведомим о новых отзывах' : 'Следить за новыми отзывами'}
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <Button onClick={() => toggleTrack(result.phone)} variant={tracked.includes(result.phone) ? 'secondary' : 'outline'} className="flex-1 rounded-xl">
+                    <Icon name={tracked.includes(result.phone) ? 'BellRing' : 'Bell'} size={16} />
+                    {tracked.includes(result.phone) ? 'Отслеживается' : 'Следить'}
+                  </Button>
+                  <Button onClick={() => openForm(result.phone)} className="flex-1 rounded-xl">
+                    <Icon name="Plus" size={16} />Оставить отзыв
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="glass rounded-2xl p-6 text-center">
                 <Icon name="SearchX" size={32} className="text-muted-foreground mx-auto mb-2" />
                 <p className="font-medium">Номер пока не в базе</p>
-                <p className="text-sm text-muted-foreground mt-1">Станьте первым, кто оставит отзыв о нём.</p>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">Станьте первым, кто оставит отзыв о нём.</p>
+                <Button onClick={() => openForm(query)} className="rounded-xl"><Icon name="Plus" size={16} />Добавить отзыв</Button>
               </div>
             )}
           </div>
         )}
       </section>
 
-      {/* Reviews */}
       <section id="reviews" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="flex items-center gap-3 mb-8">
-          <Icon name="MessageSquare" size={24} className="text-primary" />
-          <h2 className="text-2xl font-display font-bold">Свежие отзывы</h2>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Icon name="MessageSquare" size={24} className="text-primary" />
+            <h2 className="text-2xl font-display font-bold">Свежие отзывы</h2>
+          </div>
+          <Button onClick={() => openForm()} variant="outline" className="rounded-xl"><Icon name="Plus" size={16} />Добавить</Button>
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          {DATABASE.map((r) => (
-            <div key={r.phone} className="glass rounded-2xl p-5 hover:border-primary/40 transition-colors">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-mono font-semibold">{r.phone}</span>
-                <div className={`flex items-center gap-1 text-xs ${verdictMeta[r.verdict].color}`}>
-                  <Icon name={verdictMeta[r.verdict].icon} size={14} />
-                  {verdictMeta[r.verdict].label}
+        {feed.length === 0 ? (
+          <p className="text-muted-foreground">Пока нет отзывов. Будьте первым!</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {feed.map((r) => (
+              <div key={r.phone} className="glass rounded-2xl p-5 hover:border-primary/40 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-mono font-semibold">{r.phone}</span>
+                  <div className={`flex items-center gap-1 text-xs ${verdictMeta[r.verdict].color}`}>
+                    <Icon name={verdictMeta[r.verdict].icon} size={14} />
+                    {verdictMeta[r.verdict].label}
+                  </div>
                 </div>
+                <div className="flex items-center gap-2 mb-2">{renderStars(r.rating)}<span className="text-xs text-muted-foreground">{r.reviews} отзывов</span></div>
+                <p className="text-sm text-muted-foreground">«{r.lastReview}»</p>
               </div>
-              <div className="flex items-center gap-2 mb-2">{renderStars(r.rating)}<span className="text-xs text-muted-foreground">{r.reviews} отзывов</span></div>
-              <p className="text-sm text-muted-foreground">«{r.lastReview}»</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Stats */}
       <section id="stats" className="relative z-10 container mx-auto px-4 py-16">
         <div className="flex items-center gap-3 mb-8">
           <Icon name="BarChart3" size={24} className="text-primary" />
@@ -191,10 +285,10 @@ const Index = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Номеров в базе', value: '48 920', icon: 'Database' },
-            { label: 'Отзывов оставлено', value: '127 K', icon: 'MessageSquare' },
-            { label: 'Мошенников выявлено', value: '3 412', icon: 'ShieldX' },
-            { label: 'Точность проверки', value: '98.6%', icon: 'Target' },
+            { label: 'Номеров в базе', value: feed.length, icon: 'Database' },
+            { label: 'Отзывов всего', value: feed.reduce((s, r) => s + r.reviews, 0), icon: 'MessageSquare' },
+            { label: 'Мошенников', value: feed.filter((r) => r.verdict === 'scam').length, icon: 'ShieldX' },
+            { label: 'Надёжных', value: feed.filter((r) => r.verdict === 'safe').length, icon: 'ShieldCheck' },
           ].map((s) => (
             <div key={s.label} className="glass rounded-2xl p-6 text-center">
               <Icon name={s.icon} size={24} className="text-primary mx-auto mb-3" />
@@ -205,7 +299,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Support */}
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">
         <div className="glass rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto">
           <Icon name="LifeBuoy" size={32} className="text-primary mx-auto mb-4" />
@@ -221,6 +314,15 @@ const Index = () => {
       <footer className="relative z-10 border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>© 2026 NumCheck — проверка номеров заказчиков</p>
       </footer>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="glass">
+          <DialogHeader>
+            <DialogTitle className="font-display">Оставить отзыв о номере</DialogTitle>
+          </DialogHeader>
+          <ReviewForm defaultPhone={formPhone} onDone={afterSubmit} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
