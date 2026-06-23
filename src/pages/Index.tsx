@@ -8,6 +8,11 @@ import { toast } from '@/hooks/use-toast';
 
 const API = 'https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 type Verdict = 'safe' | 'risky' | 'scam';
 
 interface NumberRecord {
@@ -105,6 +110,25 @@ const Index = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formPhone, setFormPhone] = useState<string | undefined>();
   const [hintClosed, setHintClosed] = useState(() => !!localStorage.getItem('numcheck_hint_closed'));
+  const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
+  const [installBannerClosed, setInstallBannerClosed] = useState(() => !!localStorage.getItem('numcheck_install_closed'));
+  const [isIos] = useState(() => /iphone|ipad|ipod/i.test(navigator.userAgent));
+  const [isStandalone] = useState(() => window.matchMedia('(display-mode: standalone)').matches);
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    (installPrompt as BeforeInstallPromptEvent).prompt();
+    const { outcome } = await (installPrompt as BeforeInstallPromptEvent).userChoice;
+    if (outcome === 'accepted') { setInstallPrompt(null); closeInstallBanner(); }
+  };
+
+  const closeInstallBanner = () => { localStorage.setItem('numcheck_install_closed', '1'); setInstallBannerClosed(true); };
 
   const loadFeed = async () => {
     try {
@@ -367,6 +391,37 @@ const Index = () => {
       <footer className="relative z-10 border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>© 2026 NumCheck — проверка номеров заказчиков</p>
       </footer>
+
+      {/* PWA Install Banner */}
+      {!installBannerClosed && !isStandalone && (installPrompt || isIos) && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-fade-up">
+          <div className="glass rounded-2xl p-4 glow-primary flex items-center gap-4">
+            <img
+              src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/files/7bbeed74-274d-4d2b-b571-4d5feda5e3d2.jpg"
+              alt="NumCheck"
+              className="w-12 h-12 rounded-xl shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">Установить NumCheck</p>
+              {isIos ? (
+                <p className="text-xs text-muted-foreground mt-0.5">Нажмите <Icon name="Share2" size={11} className="inline" /> → «На экран Домой»</p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-0.5">Добавить на рабочий стол</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {!isIos && (
+                <Button size="sm" onClick={handleInstall} className="rounded-lg text-xs px-3">
+                  Установить
+                </Button>
+              )}
+              <button onClick={closeInstallBanner} className="text-muted-foreground hover:text-foreground transition-colors">
+                <Icon name="X" size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="glass">
