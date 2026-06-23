@@ -100,10 +100,10 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
         </Button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 items-start max-w-6xl mx-auto">
+      <div className="flex flex-col lg:flex-row gap-6 lg:items-start max-w-6xl mx-auto">
 
       {/* Чат */}
-      <div className="glass rounded-2xl overflow-hidden flex flex-col flex-1 w-full h-[75vh] lg:h-[600px]">
+      <div className="glass rounded-2xl overflow-hidden flex flex-col w-full lg:flex-1 h-[70vh] min-h-[400px] lg:h-[600px]">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -121,7 +121,7 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
                   {!(myName && msg.user_name === myName) && (
                     <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
                   )}
-                  <p className="text-sm whitespace-pre-line">{msg.text}</p>
+                  <p className="text-sm whitespace-pre-line break-words">{msg.text}</p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 px-1">{msg.created_at}</p>
               </div>
