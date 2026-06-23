@@ -1,0 +1,18 @@
+{
+  "name": "NumCheck — проверка номеров",
+  "short_name": "NumCheck",
+  "description": "Мгновенная проверка номеров телефонов, отзывы и рейтинги заказчиков от сообщества.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1117",
+  "theme_color": "#22D982",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/files/7bbeed74-274d-4d2b-b571-4d5feda5e3d2.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
