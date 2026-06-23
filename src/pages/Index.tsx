@@ -176,10 +176,8 @@ const Index = () => {
       <header className="relative z-20 sticky top-0 glass">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <a href="#check" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center glow-primary">
-              <Icon name="Radar" size={20} className="text-primary-foreground" />
-            </div>
-            <span className="font-display font-bold text-lg tracking-tight">Num<span className="text-primary">Check</span></span>
+            <img src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg" alt="Микс Строй" className="w-9 h-9 rounded-xl object-cover" />
+            <span className="font-display font-bold text-lg tracking-tight">Микс <span className="text-primary">Строй</span></span>
           </a>
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
@@ -389,7 +387,7 @@ const Index = () => {
       </section>
 
       <footer className="relative z-10 border-t border-border py-8 text-center text-sm text-muted-foreground">
-        <p>© 2026 NumCheck — проверка номеров заказчиков</p>
+        <p>© 2026 Микс Строй — проверка номеров заказчиков</p>
       </footer>
 
       {/* PWA Install Banner */}
@@ -397,12 +395,12 @@ const Index = () => {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-fade-up">
           <div className="glass rounded-2xl p-4 glow-primary flex items-center gap-4">
             <img
-              src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/files/7bbeed74-274d-4d2b-b571-4d5feda5e3d2.jpg"
-              alt="NumCheck"
-              className="w-12 h-12 rounded-xl shrink-0"
+              src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg"
+              alt="Микс Строй"
+              className="w-12 h-12 rounded-xl shrink-0 object-cover"
             />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">Установить NumCheck</p>
+              <p className="font-semibold text-sm">Установить Микс Строй</p>
               {isIos ? (
                 <p className="text-xs text-muted-foreground mt-0.5">Нажмите <Icon name="Share2" size={11} className="inline" /> → «На экран Домой»</p>
               ) : (
