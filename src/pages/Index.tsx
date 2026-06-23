@@ -6,17 +6,9 @@ import { toast } from '@/hooks/use-toast';
 
 import AppHeader from '@/components/app/AppHeader';
 import CheckSection from '@/components/app/CheckSection';
-import ReviewsSection from '@/components/app/ReviewsSection';
-
 import ChatSection from '@/components/app/ChatSection';
-import AuthDialog from '@/components/app/AuthDialog';
 import ReviewForm from '@/components/app/ReviewForm';
-import AdminPanel from '@/components/app/AdminPanel';
-import {
-  API, AUTH_API, CHAT_API,
-  User, NumberRecord, Member, ChatMessage,
-  getToken, clearSession,
-} from '@/components/app/types';
+import { API, CHAT_API, NumberRecord, ChatMessage } from '@/components/app/types';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -29,8 +21,6 @@ const Index = () => {
   const [searched, setSearched] = useState(false);
   const [searching, setSearching] = useState(false);
   const [tracked, setTracked] = useState<string[]>([]);
-  const [feed, setFeed] = useState<NumberRecord[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [formPhone, setFormPhone] = useState<string | undefined>();
   const [hintClosed, setHintClosed] = useState(() => !!localStorage.getItem('numcheck_hint_closed'));
@@ -38,10 +28,6 @@ const Index = () => {
   const [installBannerClosed, setInstallBannerClosed] = useState(() => !!localStorage.getItem('numcheck_install_closed'));
   const [isIos] = useState(() => /iphone|ipad|ipod/i.test(navigator.userAgent));
   const [isStandalone] = useState(() => window.matchMedia('(display-mode: standalone)').matches);
-  const [user, setUser] = useState<User | null>(() => {
-    try { return JSON.parse(localStorage.getItem('ms_user') || 'null'); } catch { return null; }
-  });
-  const [authOpen, setAuthOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatText, setChatText] = useState('');
   const [chatSending, setChatSending] = useState(false);
@@ -62,16 +48,6 @@ const Index = () => {
 
   const closeInstallBanner = () => { localStorage.setItem('numcheck_install_closed', '1'); setInstallBannerClosed(true); };
 
-  const loadFeed = async () => {
-    try {
-      const res = await fetch(API);
-      const data = await res.json();
-      setFeed(data.records || []);
-    } catch {
-      setFeed([]);
-    }
-  };
-
   const loadMessages = async () => {
     try {
       const res = await fetch(CHAT_API);
@@ -82,31 +58,23 @@ const Index = () => {
 
   const sendMessage = async () => {
     if (!chatText.trim()) return;
-    const token = getToken();
     setChatSending(true);
     const textToSend = chatText.trim();
     setChatText('');
     try {
       const res = await fetch(CHAT_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textToSend }),
       });
       const data = await res.json();
-      console.log('[chat] status:', res.status, 'data:', data);
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
         setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-      } else if (res.status === 401) {
-        clearSession();
-        setUser(null);
-        setAuthOpen(true);
-        toast({ title: 'Сессия истекла', description: 'Войдите снова', variant: 'destructive' });
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
       }
-    } catch (e) {
-      console.error('[chat] error:', e);
+    } catch {
       setChatText(textToSend);
       toast({ title: 'Не удалось отправить', variant: 'destructive' });
     } finally {
@@ -114,28 +82,16 @@ const Index = () => {
     }
   };
 
-  useEffect(() => { loadFeed(); loadMembers(); loadMessages(); }, []);
+  useEffect(() => { loadMessages(); }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadMessages();
-    }, 5000);
+    const interval = setInterval(loadMessages, 5000);
     return () => clearInterval(interval);
-  }, []);  
+  }, []);
 
-  const loadMembers = async () => {
-    try {
-      const res = await fetch(AUTH_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'members' }),
-      });
-      const data = await res.json();
-      setMembers(data.members || []);
-    } catch {
-      setMembers([]);
-    }
-  };
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -160,33 +116,15 @@ const Index = () => {
     }
   };
 
-  const openForm = (phone?: string) => {
-    setFormPhone(phone); setFormOpen(true);
-  };
-  const afterSubmit = () => { setFormOpen(false); loadFeed(); if (query) handleSearch(); };
+  const openForm = (phone?: string) => { setFormPhone(phone); setFormOpen(true); };
+  const afterSubmit = () => { setFormOpen(false); if (query) handleSearch(); };
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
-  const logout = async () => {
-    const token = getToken();
-    if (token) {
-      fetch(AUTH_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'logout' }) });
-    }
-    clearSession();
-    setUser(null);
-    toast({ title: 'Вы вышли из аккаунта' });
-  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      <AppHeader
-        user={user}
-        onOpenForm={() => openForm()}
-        onOpenAuth={() => setAuthOpen(true)}
-        onLogout={logout}
-      />
-
-      <AdminPanel user={user} />
+      <AppHeader onOpenForm={() => openForm()} />
 
       <CheckSection
         query={query}
@@ -202,16 +140,14 @@ const Index = () => {
         onCloseHint={closeHint}
       />
 
-
-
       <ChatSection
-        user={user}
+        user={null}
         messages={messages}
         chatText={chatText}
         chatSending={chatSending}
         setChatText={setChatText}
         sendMessage={sendMessage}
-        onOpenAuth={() => setAuthOpen(true)}
+        onOpenAuth={() => {}}
         chatEndRef={chatEndRef}
       />
 
@@ -269,8 +205,6 @@ const Index = () => {
           <ReviewForm defaultPhone={formPhone} onDone={afterSubmit} />
         </DialogContent>
       </Dialog>
-
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} onAuth={setUser} />
     </div>
   );
 };

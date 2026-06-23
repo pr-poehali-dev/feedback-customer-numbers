@@ -1,16 +1,13 @@
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { User, navItems } from './types';
+import { navItems } from './types';
 
 interface Props {
-  user: User | null;
   onOpenForm: () => void;
-  onOpenAuth: () => void;
-  onLogout: () => void;
 }
 
-const AppHeader = ({ user, onOpenForm, onOpenAuth, onLogout }: Props) => (
+const AppHeader = ({ onOpenForm }: Props) => (
   <header className="relative z-20 sticky top-0 glass">
     <div className="container mx-auto flex items-center justify-between h-16 px-4">
       <a href="#check" className="flex items-center gap-2">
@@ -47,19 +44,6 @@ const AppHeader = ({ user, onOpenForm, onOpenAuth, onLogout }: Props) => (
           <Icon name="Share2" size={15} />
           <span className="hidden sm:inline">Поделиться</span>
         </Button>
-        {user ? (
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:inline text-xs text-muted-foreground max-w-[100px] truncate">{user.name || user.email}</span>
-            <Button size="sm" variant="outline" className="rounded-lg font-medium" onClick={onLogout}>
-              <Icon name="LogOut" size={15} />
-            </Button>
-          </div>
-        ) : (
-          <Button size="sm" className="rounded-lg font-medium" onClick={onOpenAuth}>
-            <Icon name="LogIn" size={15} />
-            <span className="hidden sm:inline">Войти</span>
-          </Button>
-        )}
       </div>
     </div>
   </header>
