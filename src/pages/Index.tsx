@@ -7,6 +7,79 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 
 const API = 'https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f';
+const AUTH_API = 'https://functions.poehali.dev/d1b46d26-6b11-4be2-8267-1081db5bb482';
+
+interface User { id: number; email: string; name: string; }
+
+const getToken = () => localStorage.getItem('ms_token') || '';
+const saveSession = (token: string, user: User) => {
+  localStorage.setItem('ms_token', token);
+  localStorage.setItem('ms_user', JSON.stringify(user));
+};
+const clearSession = () => {
+  localStorage.removeItem('ms_token');
+  localStorage.removeItem('ms_user');
+};
+
+const AuthDialog = ({ open, onClose, onAuth }: { open: boolean; onClose: () => void; onAuth: (user: User) => void }) => {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    if (!email || !password) { toast({ title: 'Заполните email и пароль', variant: 'destructive' }); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(AUTH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: mode, email, password, name }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        saveSession(data.token, data.user);
+        onAuth(data.user);
+        onClose();
+        toast({ title: mode === 'login' ? 'Добро пожаловать!' : 'Аккаунт создан!', description: data.user.email });
+      } else {
+        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Не удалось подключиться', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="glass border-border max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{mode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 mt-2">
+          {mode === 'register' && (
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ваше имя" />
+          )}
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" />
+          <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Пароль (минимум 6 символов)" type="password"
+            onKeyDown={(e) => e.key === 'Enter' && submit()} />
+          <Button onClick={submit} disabled={loading} className="w-full font-semibold rounded-xl">
+            {loading ? '...' : mode === 'login' ? 'Войти' : 'Зарегистрироваться'}
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            {mode === 'login' ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
+            <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="text-primary underline underline-offset-2">
+              {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
+            </button>
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -118,6 +191,10 @@ const Index = () => {
   const [installBannerClosed, setInstallBannerClosed] = useState(() => !!localStorage.getItem('numcheck_install_closed'));
   const [isIos] = useState(() => /iphone|ipad|ipod/i.test(navigator.userAgent));
   const [isStandalone] = useState(() => window.matchMedia('(display-mode: standalone)').matches);
+  const [user, setUser] = useState<User | null>(() => {
+    try { return JSON.parse(localStorage.getItem('ms_user') || 'null'); } catch { return null; }
+  });
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
@@ -169,9 +246,21 @@ const Index = () => {
     }
   };
 
-  const openForm = (phone?: string) => { setFormPhone(phone); setFormOpen(true); };
+  const openForm = (phone?: string) => {
+    if (!user) { setAuthOpen(true); return; }
+    setFormPhone(phone); setFormOpen(true);
+  };
   const afterSubmit = () => { setFormOpen(false); loadFeed(); if (query) handleSearch(); };
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
+  const logout = async () => {
+    const token = getToken();
+    if (token) {
+      fetch(AUTH_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: 'logout' }) });
+    }
+    clearSession();
+    setUser(null);
+    toast({ title: 'Вы вышли из аккаунта' });
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -203,7 +292,7 @@ const Index = () => {
               onClick={() => {
                 const url = window.location.href;
                 if (navigator.share) {
-                  navigator.share({ title: 'NumCheck — проверка номеров заказчиков', url });
+                  navigator.share({ title: 'Микс Строй — проверка номеров заказчиков', url });
                 } else {
                   navigator.clipboard.writeText(url);
                   toast({ title: 'Ссылка скопирована!', description: 'Отправьте её друзьям или коллегам.' });
@@ -213,10 +302,19 @@ const Index = () => {
               <Icon name="Share2" size={15} />
               <span className="hidden sm:inline">Поделиться</span>
             </Button>
-            <Button size="sm" className="rounded-lg font-medium">
-              <Icon name="Bell" size={15} />
-              {tracked.length > 0 && <span className="ml-1">{tracked.length}</span>}
-            </Button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline text-xs text-muted-foreground max-w-[100px] truncate">{user.name || user.email}</span>
+                <Button size="sm" variant="outline" className="rounded-lg font-medium" onClick={logout}>
+                  <Icon name="LogOut" size={15} />
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" className="rounded-lg font-medium" onClick={() => setAuthOpen(true)}>
+                <Icon name="LogIn" size={15} />
+                <span className="hidden sm:inline">Войти</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -433,6 +531,8 @@ const Index = () => {
           <ReviewForm defaultPhone={formPhone} onDone={afterSubmit} />
         </DialogContent>
       </Dialog>
+
+      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} onAuth={setUser} />
     </div>
   );
 };
