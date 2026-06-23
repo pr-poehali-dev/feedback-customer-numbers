@@ -1,0 +1,2 @@
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS object_address TEXT;
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS customer_name VARCHAR(200);

@@ -49,6 +49,8 @@ const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: (
   const [phone, setPhone] = useState(defaultPhone || '');
   const [rating, setRating] = useState(5);
   const [author, setAuthor] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [address, setAddress] = useState('');
   const [comment, setComment] = useState('');
   const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,7 +65,7 @@ const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: (
       const res = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, rating, author, comment, tags }),
+        body: JSON.stringify({ phone, rating, author, customer_name: customerName, object_address: address, comment, tags }),
       });
       const data = await res.json();
       if (data.success) {
@@ -91,6 +93,8 @@ const ReviewForm = ({ defaultPhone, onDone }: { defaultPhone?: string; onDone: (
         ))}
       </div>
       <Input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Ваше имя (необязательно)" />
+      <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Имя заказчика" />
+      <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Адрес объекта (улица, город)" />
       <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Теги через запятую: Платит вовремя, Адекватный" />
       <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Опишите опыт работы с заказчиком..." rows={4} />
       <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
