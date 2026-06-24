@@ -204,30 +204,40 @@ const Index = () => {
 
       {!installBannerClosed && !isStandalone && (installPrompt || isIos) && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-fade-up">
-          <div className="glass rounded-2xl p-4 glow-primary flex items-center gap-4">
-            <img
-              src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg"
-              alt="Микс Строй"
-              className="w-12 h-12 rounded-xl shrink-0 object-cover"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">Установить Микс Строй</p>
-              {isIos ? (
-                <p className="text-xs text-muted-foreground mt-0.5">Нажмите <Icon name="Share2" size={11} className="inline" /> → «На экран Домой»</p>
-              ) : (
-                <p className="text-xs text-muted-foreground mt-0.5">Добавить на рабочий стол</p>
-              )}
+          <div className="glass rounded-2xl p-4 glow-primary relative">
+            <button onClick={closeInstallBanner} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors p-1">
+              <Icon name="X" size={18} />
+            </button>
+            <div className="flex items-center gap-3 pr-6">
+              <img
+                src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg"
+                alt="Микс Строй"
+                className="w-11 h-11 rounded-xl shrink-0 object-cover"
+              />
+              <p className="font-semibold text-sm">Установить приложение «Микс Строй»</p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {!isIos && (
-                <Button size="sm" onClick={handleInstall} className="rounded-lg text-xs px-3">
-                  Установить
-                </Button>
-              )}
-              <button onClick={closeInstallBanner} className="text-muted-foreground hover:text-foreground transition-colors">
-                <Icon name="X" size={18} />
-              </button>
-            </div>
+
+            {isIos ? (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2.5 text-xs">
+                  <span className="w-5 h-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
+                  <span className="text-muted-foreground">Нажмите значок <Icon name="Share2" size={13} className="inline text-primary -mt-0.5" /> «Поделиться» внизу браузера</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <span className="w-5 h-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
+                  <span className="text-muted-foreground">Выберите «На экран „Домой“»</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <span className="w-5 h-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
+                  <span className="text-muted-foreground">Нажмите «Добавить»</span>
+                </div>
+              </div>
+            ) : (
+              <Button size="sm" onClick={handleInstall} className="rounded-lg text-sm w-full mt-3">
+                <Icon name="Download" size={15} />
+                Установить на телефон
+              </Button>
+            )}
           </div>
         </div>
       )}
