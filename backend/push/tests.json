@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Получить публичный ключ",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Подписка без данных отклоняется",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "subscribe", "subscription": {}},
+      "expectedStatus": 400
+    }
+  ]
+}

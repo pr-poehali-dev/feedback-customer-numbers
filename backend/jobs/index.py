@@ -12,6 +12,40 @@ def _cors():
 def _db():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
+
+def _send_push(conn, title: str, body: str):
+    """Рассылает push всем подписчикам о новой заявке. Ошибки не критичны."""
+    private_key = os.environ.get('VAPID_PRIVATE_KEY')
+    if not private_key:
+        return
+    try:
+        from pywebpush import webpush, WebPushException
+    except Exception:
+        return
+    cur = conn.cursor()
+    cur.execute("SELECT id, endpoint, p256dh, auth FROM push_subscriptions")
+    rows = cur.fetchall()
+    payload = json.dumps({'title': title, 'body': body, 'url': '/#chat'})
+    dead = []
+    for sid, endpoint, p256dh, auth in rows:
+        try:
+            webpush(
+                subscription_info={'endpoint': endpoint, 'keys': {'p256dh': p256dh, 'auth': auth}},
+                data=payload,
+                vapid_private_key=private_key,
+                vapid_claims={'sub': 'mailto:admin@miks-stroy.ru'},
+            )
+        except WebPushException as e:
+            status = getattr(getattr(e, 'response', None), 'status_code', None)
+            if status in (404, 410):
+                dead.append(sid)
+        except Exception:
+            pass
+    if dead:
+        cur.execute("DELETE FROM push_subscriptions WHERE id IN (%s)"
+                    % ','.join(str(int(i)) for i in dead))
+        conn.commit()
+
 def handler(event: dict, context) -> dict:
     """Заявки на работу: создание и получение списка"""
     if event.get('httpMethod') == 'OPTIONS':
@@ -101,6 +135,12 @@ def handler(event: dict, context) -> dict:
             "INSERT INTO messages (user_id, user_name, text) VALUES (NULL, 'Новое размещение', '%s')" % chat_esc
         )
         conn.commit()
+
+        push_body = '%s · %s чел. · %s' % (address, workers, work_type)
+        if price:
+            push_body += ' · %s' % price
+        _send_push(conn, 'НОВОЕ РАЗМЕЩЕНИЕ', push_body)
+
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({'success': True, 'id': row[0]}, ensure_ascii=False)}
 

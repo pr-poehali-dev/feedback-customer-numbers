@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { User, ChatMessage } from './types';
+import { enablePush, disablePush, getPushPermission, pushSupported } from './push';
 
 const JOBS_API = 'https://functions.poehali.dev/9db3fbb7-d09a-451b-9b2c-f75933050bb9';
 
@@ -121,6 +122,40 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [pushOn, setPushOn] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  useEffect(() => {
+    setPushOn(getPushPermission() === 'granted');
+  }, []);
+
+  const togglePush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (pushOn) {
+        await disablePush();
+        setPushOn(false);
+        toast({ title: 'Уведомления выключены' });
+      } else {
+        const res = await enablePush();
+        if (res.ok) {
+          setPushOn(true);
+          toast({ title: 'Уведомления включены! Будем присылать новые размещения' });
+        } else if (res.reason === 'denied') {
+          toast({ title: 'Разрешите уведомления в настройках браузера', variant: 'destructive' });
+        } else if (res.reason === 'unsupported') {
+          toast({ title: 'Это устройство не поддерживает уведомления', variant: 'destructive' });
+        } else {
+          toast({ title: 'Не удалось включить уведомления', variant: 'destructive' });
+        }
+      }
+    } catch {
+      toast({ title: 'Ошибка уведомлений', variant: 'destructive' });
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const handleRefresh = () => {
     if (!onRefresh || refreshing) return;
@@ -155,10 +190,21 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
         )}
       </div>
 
-      <div className="flex justify-center mb-6">
+      <div className="flex flex-wrap justify-center gap-3 mb-6">
         <Button onClick={openJobForm} className="rounded-xl font-semibold px-8 py-3 text-base">
           <Icon name="ClipboardList" size={18} />Размещение заказов
         </Button>
+        {pushSupported() && (
+          <Button
+            onClick={togglePush}
+            disabled={pushBusy}
+            variant={pushOn ? 'secondary' : 'outline'}
+            className="rounded-xl font-semibold px-6 py-3 text-base"
+          >
+            <Icon name={pushOn ? 'BellRing' : 'BellOff'} size={18} />
+            {pushOn ? 'Уведомления вкл.' : 'Включить уведомления'}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start max-w-6xl mx-auto">

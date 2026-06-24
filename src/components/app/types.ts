@@ -1,6 +1,7 @@
 export const API = 'https://functions.poehali.dev/f89f476c-1066-4f2b-b1fa-53c7e98cfd2f';
 export const AUTH_API = 'https://functions.poehali.dev/d1b46d26-6b11-4be2-8267-1081db5bb482';
 export const CHAT_API = 'https://functions.poehali.dev/4900b2e3-7dad-46ac-bb86-767cec0438f1';
+export const PUSH_API = 'https://functions.poehali.dev/e4ae61d8-e206-4f40-a37d-c982ff4ff10c';
 
 export interface User { id: number; email: string; name: string; }
 
