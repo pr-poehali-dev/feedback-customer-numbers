@@ -17,6 +17,12 @@ interface Props {
   onOpenInstall?: () => void;
 }
 
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 const renderStars = (rating: number, size = 14) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map((i) => (
@@ -143,6 +149,9 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
                       <div className="flex items-center gap-2 min-w-0">
                         <Icon name="User" size={14} className="text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold truncate">{rv.author}</span>
+                        {rv.createdAt && (
+                          <span className="text-xs text-muted-foreground shrink-0">{formatDate(rv.createdAt)}</span>
+                        )}
                       </div>
                       {renderStars(rv.rating)}
                     </div>
