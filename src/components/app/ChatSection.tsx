@@ -168,6 +168,8 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
         {[
           'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/5e781115-819e-4970-a0cf-f9d1eef3e8c7.jpeg',
           'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/b7aa7285-32b6-484a-a849-3047080697d2.jpeg',
+          'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/b85988a5-3f3a-4c71-9db2-802df5e1275d.jpeg',
+          'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4441c37a-7d1e-4bcd-b59f-3eab2acbb360.jpeg',
         ].map((src, i) => (
           <img
             key={i}
