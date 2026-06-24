@@ -163,6 +163,29 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
 
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start max-w-6xl mx-auto">
 
+      {/* Фото бригад — слева от чата */}
+      <div className="w-full lg:w-56 shrink-0 order-first">
+        <div className="border border-primary/30 rounded-2xl overflow-hidden">
+          <div className="bg-primary/10 px-4 py-2">
+            <p className="font-bold text-xs uppercase tracking-wide text-primary">Наша бригада</p>
+          </div>
+          <div className="p-3 grid grid-cols-2 lg:grid-cols-1 gap-3">
+            {[
+              'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/5e781115-819e-4970-a0cf-f9d1eef3e8c7.jpeg',
+              'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/b7aa7285-32b6-484a-a849-3047080697d2.jpeg',
+            ].map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`Бригада ${i + 1}`}
+                loading="lazy"
+                className="w-full h-28 lg:h-32 object-cover rounded-xl"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Чат */}
       <div className="glass rounded-2xl overflow-hidden flex flex-col w-full lg:flex-1 h-[70vh] min-h-[400px] lg:h-[600px]">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
