@@ -10,7 +10,7 @@ interface Member {
   joined: string;
 }
 
-const MembersSection = () => {
+const MembersSection = ({ onClose }: { onClose?: () => void }) => {
   const [members, setMembers] = useState<Member[]>([]);
 
   useEffect(() => {
@@ -26,6 +26,11 @@ const MembersSection = () => {
         <Icon name="Users" size={24} className="text-primary" />
         <h2 className="text-2xl font-display font-bold">Участники</h2>
         <span className="text-sm text-muted-foreground ml-1">({members.length})</span>
+        {onClose && (
+          <button onClick={onClose} className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            <Icon name="X" size={16} />Скрыть
+          </button>
+        )}
       </div>
 
       {members.length === 0 ? (

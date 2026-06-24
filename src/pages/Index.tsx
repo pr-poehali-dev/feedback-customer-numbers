@@ -34,6 +34,7 @@ const Index = () => {
   const [chatText, setChatText] = useState('');
   const [chatSending, setChatSending] = useState(false);
   const [participant, setParticipant] = useState<Participant | null>(null);
+  const [showMembers, setShowMembers] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,7 +145,13 @@ const Index = () => {
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      <AppHeader onOpenForm={() => requireParticipant(() => setFormOpen(true))} />
+      <AppHeader
+        onOpenForm={() => requireParticipant(() => setFormOpen(true))}
+        onOpenMembers={() => {
+          setShowMembers(true);
+          setTimeout(() => document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' }), 50);
+        }}
+      />
 
       <CheckSection
         query={query}
@@ -160,7 +167,7 @@ const Index = () => {
         onCloseHint={closeHint}
       />
 
-      <MembersSection />
+      {showMembers && <MembersSection onClose={() => setShowMembers(false)} />}
 
       <ChatSection
         user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}

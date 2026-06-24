@@ -5,9 +5,10 @@ import { navItems } from './types';
 
 interface Props {
   onOpenForm: () => void;
+  onOpenMembers?: () => void;
 }
 
-const AppHeader = ({ onOpenForm }: Props) => (
+const AppHeader = ({ onOpenForm, onOpenMembers }: Props) => (
   <header className="relative z-20 sticky top-0 glass">
     <div className="container mx-auto flex items-center justify-between h-16 px-4">
       <a href="#check" className="flex items-center gap-2">
@@ -15,12 +16,19 @@ const AppHeader = ({ onOpenForm }: Props) => (
         <span className="font-display font-bold text-lg tracking-tight">Микс <span className="text-primary">Строй</span></span>
       </a>
       <nav className="hidden md:flex items-center gap-1">
-        {navItems.map((item) => (
-          <a key={item.id} href={`#${item.id}`} className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
-            <Icon name={item.icon} size={15} />
-            {item.label}
-          </a>
-        ))}
+        {navItems.map((item) =>
+          item.id === 'members' ? (
+            <button key={item.id} onClick={onOpenMembers} className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
+              <Icon name={item.icon} size={15} />
+              {item.label}
+            </button>
+          ) : (
+            <a key={item.id} href={`#${item.id}`} className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
+              <Icon name={item.icon} size={15} />
+              {item.label}
+            </a>
+          )
+        )}
       </nav>
       <div className="flex items-center gap-2">
         <Button onClick={onOpenForm} size="sm" variant="outline" className="rounded-lg font-medium">
