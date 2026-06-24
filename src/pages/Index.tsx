@@ -94,7 +94,12 @@ const Index = () => {
     setChatSending(false);
   };
 
-  useEffect(() => { loadMessages(); }, []);
+  useEffect(() => {
+    // При открытии страница всегда сверху, не прыгает к чату/подвалу
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    loadMessages();
+  }, []);
 
   useEffect(() => {
     // Опрашиваем только когда вкладка активна — экономим вызовы
