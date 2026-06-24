@@ -129,15 +129,15 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               <div className={`max-w-[78%] ${mine ? 'items-end' : 'items-start'} flex flex-col relative`}>
                 <div className="flex items-end gap-1.5">
                   {mine && (
-                    <div className="flex items-center gap-1 self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       {onReactMessage && (
-                        <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1" title="Реакция">
-                          <Icon name="SmilePlus" size={15} />
+                        <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1.5" title="Реакция">
+                          <Icon name="SmilePlus" size={16} />
                         </button>
                       )}
                       {canDelete && onDeleteMessage && (
-                        <button onClick={() => onDeleteMessage(msg.id)} className="text-muted-foreground hover:text-destructive p-1" title="Удалить">
-                          <Icon name="Trash2" size={15} />
+                        <button onClick={() => onDeleteMessage(msg.id)} className="text-muted-foreground hover:text-destructive p-1.5" title="Удалить">
+                          <Icon name="Trash2" size={16} />
                         </button>
                       )}
                     </div>
@@ -149,15 +149,15 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                     <p className="text-sm whitespace-pre-line break-words">{msg.text}</p>
                   </div>
                   {!mine && (
-                    <div className="flex items-center gap-1 self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       {onReactMessage && (
-                        <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1" title="Реакция">
-                          <Icon name="SmilePlus" size={15} />
+                        <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1.5" title="Реакция">
+                          <Icon name="SmilePlus" size={16} />
                         </button>
                       )}
                       {canDelete && onDeleteMessage && (
-                        <button onClick={() => onDeleteMessage(msg.id)} className="text-muted-foreground hover:text-destructive p-1" title="Удалить">
-                          <Icon name="Trash2" size={15} />
+                        <button onClick={() => onDeleteMessage(msg.id)} className="text-muted-foreground hover:text-destructive p-1.5" title="Удалить">
+                          <Icon name="Trash2" size={16} />
                         </button>
                       )}
                     </div>
