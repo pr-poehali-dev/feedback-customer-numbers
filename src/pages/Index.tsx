@@ -170,11 +170,25 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Опрашиваем только когда вкладка активна — экономим вызовы
-    const interval = setInterval(() => {
-      if (!document.hidden) loadMessages();
-    }, 15000);
-    return () => clearInterval(interval);
+    // Опрашиваем только когда раздел чата виден на экране и вкладка активна — экономим вычислительное время
+    let chatVisible = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const tick = () => { if (!document.hidden && chatVisible) loadMessages(); };
+    const start = () => { if (!interval) { tick(); interval = setInterval(tick, 15000); } };
+    const stop = () => { if (interval) { clearInterval(interval); interval = null; } };
+
+    const chatEl = document.getElementById('chat');
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        chatVisible = entry.isIntersecting;
+        if (chatVisible) start(); else stop();
+      },
+      { threshold: 0.1 }
+    );
+    if (chatEl) observer.observe(chatEl);
+
+    return () => { stop(); observer.disconnect(); };
   }, []);
 
   const handleSearch = async () => {
