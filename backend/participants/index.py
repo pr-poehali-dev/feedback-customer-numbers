@@ -5,7 +5,7 @@ import psycopg2
 def _cors():
     return {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
     }
 
@@ -28,11 +28,11 @@ def handler(event: dict, context) -> dict:
 
         # Без телефона — вернуть всех участников
         if not phone:
-            cur.execute("SELECT full_name, organization, work_direction, created_at FROM participants ORDER BY created_at DESC")
+            cur.execute("SELECT id, full_name, organization, work_direction, created_at FROM participants ORDER BY created_at DESC")
             rows = cur.fetchall()
             members = []
             for r in rows:
-                name = r[0] or ''
+                name = r[1] or ''
                 # Формируем Фамилия И.О.
                 parts = name.split()
                 if len(parts) >= 3:
@@ -42,10 +42,11 @@ def handler(event: dict, context) -> dict:
                 else:
                     short = name
                 members.append({
+                    'id': r[0],
                     'short_name': short,
-                    'organization': r[1] or '',
-                    'work_direction': r[2] or '',
-                    'joined': r[3].strftime('%d.%m.%Y') if r[3] else '',
+                    'organization': r[2] or '',
+                    'work_direction': r[3] or '',
+                    'joined': r[4].strftime('%d.%m.%Y') if r[4] else '',
                 })
             return {'statusCode': 200, 'headers': _cors(),
                     'body': json.dumps({'members': members}, ensure_ascii=False)}
@@ -91,5 +92,20 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({'success': True, 'id': pid}, ensure_ascii=False)}
+
+    # DELETE — удалить участника по id
+    if method == 'DELETE':
+        params = event.get('queryStringParameters') or {}
+        pid = (params.get('id') or '').strip()
+        if not pid.isdigit():
+            body = json.loads(event.get('body') or '{}')
+            pid = str(body.get('id') or '').strip()
+        if not pid.isdigit():
+            return {'statusCode': 400, 'headers': _cors(),
+                    'body': json.dumps({'error': 'Не указан участник'}, ensure_ascii=False)}
+        cur.execute("DELETE FROM participants WHERE id = %s" % pid)
+        conn.commit()
+        return {'statusCode': 200, 'headers': _cors(),
+                'body': json.dumps({'success': True}, ensure_ascii=False)}
 
     return {'statusCode': 405, 'headers': _cors(), 'body': json.dumps({'error': 'Метод не поддерживается'})}

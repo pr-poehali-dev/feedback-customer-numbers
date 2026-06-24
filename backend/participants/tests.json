@@ -16,6 +16,14 @@
       "expectedStatus": 200,
       "expectedBody": {"found": true},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Удаление без id — ошибка",
+      "method": "DELETE",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
     }
   ]
 }
