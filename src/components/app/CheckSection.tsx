@@ -14,6 +14,7 @@ interface Props {
   onToggleTrack: (phone: string) => void;
   onOpenForm: (phone?: string) => void;
   onCloseHint: () => void;
+  onOpenInstall?: () => void;
 }
 
 const renderStars = (rating: number, size = 14) => (
@@ -24,7 +25,7 @@ const renderStars = (rating: number, size = 14) => (
   </div>
 );
 
-const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, onSearch, onToggleTrack, onOpenForm, onCloseHint }: Props) => (
+const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, onSearch, onToggleTrack, onOpenForm, onCloseHint, onOpenInstall }: Props) => (
   <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
     <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
@@ -94,6 +95,23 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
         </Button>
       </div>
     </div>
+
+    {onOpenInstall && (
+      <button
+        onClick={onOpenInstall}
+        className="animate-fade-up max-w-xl mx-auto mt-4 w-full glass rounded-xl px-4 py-3 flex items-center gap-3 text-left hover:bg-secondary/40 transition-colors group"
+        style={{ animationDelay: '0.18s' }}
+      >
+        <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+          <Icon name="Smartphone" size={18} className="text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold">Установите приложение</p>
+          <p className="text-xs text-muted-foreground">Проверяйте номера в один тап прямо с экрана телефона</p>
+        </div>
+        <Icon name="ChevronRight" size={18} className="text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+      </button>
+    )}
 
     {searched && (
       <div className="animate-fade-up max-w-xl mx-auto mt-8">

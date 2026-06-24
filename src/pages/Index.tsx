@@ -167,6 +167,7 @@ const Index = () => {
         onToggleTrack={toggleTrack}
         onOpenForm={(phone) => requireParticipant(() => { setFormPhone(phone); setFormOpen(true); })}
         onCloseHint={closeHint}
+        onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
 
       {showMembers && (
