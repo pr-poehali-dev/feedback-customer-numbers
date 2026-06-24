@@ -105,6 +105,15 @@ const Register = () => {
                 Войти
               </button>
             </p>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent('Присоединяйся к Микс Строй — сообществу проверенных бригад! Проверяй заказчиков и находи надёжные объекты: ' + window.location.origin + '/register')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full h-11 rounded-xl bg-[#25D366] text-white font-semibold hover:opacity-90 transition-opacity"
+            >
+              <Icon name="MessageCircle" size={18} />
+              Поделиться в WhatsApp
+            </a>
           </div>
         </div>
       </div>
