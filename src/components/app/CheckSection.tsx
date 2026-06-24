@@ -120,7 +120,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
     )}
 
     <a
-      href="https://wa.me/79250177666"
+      href="https://chat.whatsapp.com/JB2fYU6AQrJ0qdPqijj90R"
       target="_blank"
       rel="noopener noreferrer"
       className="animate-fade-up max-w-xl mx-auto mt-4 w-full glass rounded-xl px-4 py-3 flex items-center gap-3 text-left hover:bg-secondary/40 transition-colors group"
