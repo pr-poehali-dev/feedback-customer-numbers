@@ -173,7 +173,7 @@ const Index = () => {
     // Опрашиваем только когда вкладка активна — экономим вызовы
     const interval = setInterval(() => {
       if (!document.hidden) loadMessages();
-    }, 5000);
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 
