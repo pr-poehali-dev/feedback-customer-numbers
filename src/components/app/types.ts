@@ -6,6 +6,17 @@ export interface User { id: number; email: string; name: string; }
 
 export type Verdict = 'safe' | 'risky' | 'scam';
 
+export interface ReviewItem {
+  rating: number;
+  verdict: Verdict;
+  author: string;
+  comment: string;
+  tags: string[];
+  createdAt: string | null;
+  customerName: string;
+  objectAddress: string;
+}
+
 export interface NumberRecord {
   phone: string;
   rating: number;
@@ -13,6 +24,7 @@ export interface NumberRecord {
   verdict: Verdict;
   tags: string[];
   lastReview: string;
+  reviewList?: ReviewItem[];
 }
 
 export interface Member {

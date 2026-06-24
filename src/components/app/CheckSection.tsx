@@ -135,7 +135,41 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
                 <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground">{t}</span>
               ))}
             </div>
-            <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-3">«{result.lastReview}»</p>
+            {result.reviewList && result.reviewList.length > 0 ? (
+              <div className="space-y-3">
+                {result.reviewList.map((rv, i) => (
+                  <div key={i} className="rounded-xl bg-secondary/40 p-4">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Icon name="User" size={14} className="text-muted-foreground shrink-0" />
+                        <span className="text-sm font-semibold truncate">{rv.author}</span>
+                      </div>
+                      {renderStars(rv.rating)}
+                    </div>
+                    {(rv.customerName || rv.objectAddress) && (
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mb-2">
+                        {rv.customerName && (
+                          <span className="flex items-center gap-1"><Icon name="Briefcase" size={12} />{rv.customerName}</span>
+                        )}
+                        {rv.objectAddress && (
+                          <span className="flex items-center gap-1"><Icon name="MapPin" size={12} />{rv.objectAddress}</span>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words">{rv.comment}</p>
+                    {rv.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {rv.tags.map((t) => (
+                          <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-3 whitespace-pre-wrap break-words">«{result.lastReview}»</p>
+            )}
             <div className="flex gap-2 mt-4">
               <Button onClick={() => onToggleTrack(result.phone)} variant={tracked.includes(result.phone) ? 'secondary' : 'outline'} className="flex-1 rounded-xl">
                 <Icon name={tracked.includes(result.phone) ? 'BellRing' : 'Bell'} size={16} />
