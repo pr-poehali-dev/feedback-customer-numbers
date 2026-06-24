@@ -36,6 +36,9 @@ const Index = () => {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [unreadChat, setUnreadChat] = useState(0);
+  const chatVisibleRef = useRef(false);
+  const lastSeenIdRef = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +61,17 @@ const Index = () => {
       const res = await fetch(CHAT_API);
       const data = await res.json();
       const fresh: ChatMessage[] = data.messages || [];
+
+      // Счётчик непрочитанных: считаем сообщения новее последнего просмотренного, пока чат не на экране
+      const maxId = fresh.length ? Math.max(...fresh.map((m) => m.id)) : 0;
+      if (chatVisibleRef.current) {
+        lastSeenIdRef.current = maxId;
+        setUnreadChat(0);
+      } else {
+        const unread = fresh.filter((m) => m.id > lastSeenIdRef.current).length;
+        setUnreadChat(unread);
+      }
+
       setMessages((prev) => {
         // Обновляем состояние только при реальных изменениях — без лишних перерисовок и мигания
         if (prev.length === fresh.length) {
@@ -170,25 +184,22 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Опрашиваем только когда раздел чата виден на экране и вкладка активна — экономим вычислительное время
-    let chatVisible = false;
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    const tick = () => { if (!document.hidden && chatVisible) loadMessages(); };
-    const start = () => { if (!interval) { tick(); interval = setInterval(tick, 15000); } };
-    const stop = () => { if (interval) { clearInterval(interval); interval = null; } };
+    // Опрос раз в 15с при активной вкладке. Когда чат на экране — счётчик сбрасывается,
+    // когда чат не виден — растёт значок непрочитанных. Экономим вычислительное время.
+    const tick = () => { if (!document.hidden) loadMessages(); };
+    const interval = setInterval(tick, 15000);
 
     const chatEl = document.getElementById('chat');
     const observer = new IntersectionObserver(
       ([entry]) => {
-        chatVisible = entry.isIntersecting;
-        if (chatVisible) start(); else stop();
+        chatVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) setUnreadChat(0);
       },
       { threshold: 0.1 }
     );
     if (chatEl) observer.observe(chatEl);
 
-    return () => { stop(); observer.disconnect(); };
+    return () => { clearInterval(interval); observer.disconnect(); };
   }, []);
 
   const handleSearch = async () => {
@@ -235,6 +246,7 @@ const Index = () => {
         onOpenInstall={isStandalone ? undefined : () => setInstallHelpOpen(true)}
         onLogout={p ? logout : undefined}
         participantName={p?.full_name}
+        unreadChat={unreadChat}
       />
 
       <CheckSection

@@ -10,9 +10,10 @@ interface Props {
   onOpenInstall?: () => void;
   onLogout?: () => void;
   participantName?: string;
+  unreadChat?: number;
 }
 
-const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, participantName }: Props) => {
+const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, participantName, unreadChat = 0 }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleNav = (id: string) => {
@@ -44,9 +45,14 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, partici
 
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
-            <button key={item.id} onClick={() => handleNav(item.id)} className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
+            <button key={item.id} onClick={() => handleNav(item.id)} className="relative px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-2">
               <Icon name={item.icon} size={15} />
               {item.label}
+              {item.id === 'chat' && unreadChat > 0 && (
+                <span className="ml-0.5 min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
+                  {unreadChat > 99 ? '99+' : unreadChat}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -62,10 +68,15 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, partici
           </Button>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="md:hidden relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="Меню"
           >
             <Icon name={menuOpen ? 'X' : 'Menu'} size={22} />
+            {!menuOpen && unreadChat > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {unreadChat > 99 ? '99+' : unreadChat}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -76,6 +87,11 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, partici
             <button key={item.id} onClick={() => handleNav(item.id)} className="px-3 py-3 rounded-lg text-sm text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-3">
               <Icon name={item.icon} size={18} className="text-primary" />
               {item.label}
+              {item.id === 'chat' && unreadChat > 0 && (
+                <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
+                  {unreadChat > 99 ? '99+' : unreadChat}
+                </span>
+              )}
             </button>
           ))}
           {onOpenInstall && (
