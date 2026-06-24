@@ -1,8 +1,16 @@
 import json
 import os
+from datetime import timedelta
 import psycopg2
 
 ADMIN_PHONE = '9652000177'
+TZ_OFFSET = timedelta(hours=3)  # Москва (UTC+3)
+
+
+def _fmt(dt, fmt):
+    if not dt:
+        return ''
+    return (dt + TZ_OFFSET).strftime(fmt)
 ALLOWED_EMOJI = {'👍', '❤️', '😂', '🔥', '👎', '🙏'}
 
 
@@ -79,8 +87,8 @@ def handler(event: dict, context) -> dict:
                 'id': r[0],
                 'user_name': r[1],
                 'text': r[2],
-                'created_at': r[3].strftime('%d.%m.%Y %H:%M') if r[3] else '',
-                'time': r[3].strftime('%H:%M') if r[3] else '',
+                'created_at': _fmt(r[3], '%d.%m.%Y %H:%M'),
+                'time': _fmt(r[3], '%H:%M'),
                 'author_phone': _norm_phone(r[4]) if r[4] else '',
                 'reactions': reactions.get(r[0], []),
             }
@@ -155,8 +163,8 @@ def handler(event: dict, context) -> dict:
                         'id': row[0],
                         'user_name': user_name or 'Гость',
                         'text': text,
-                        'created_at': row[1].strftime('%d.%m.%Y %H:%M') if row[1] else '',
-                        'time': row[1].strftime('%H:%M') if row[1] else '',
+                        'created_at': _fmt(row[1], '%d.%m.%Y %H:%M'),
+                        'time': _fmt(row[1], '%H:%M'),
                         'author_phone': author_phone,
                         'reactions': [],
                     }
