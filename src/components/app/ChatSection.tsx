@@ -36,6 +36,7 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
   const [price, setPrice] = useState('');
   const [phone, setPhone] = useState('');
   const [workType, setWorkType] = useState('');
+  const [docs, setDocs] = useState('Да');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +50,7 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
       const res = await fetch(JOBS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, workers: Number(workers), hours: Number(hours), price, phone, work_type: workType, comment }),
+        body: JSON.stringify({ address, workers: Number(workers), hours: Number(hours), price, phone, work_type: workType, docs, comment }),
       });
       const data = await res.json();
       if (data.success) {
@@ -75,6 +76,22 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
       <Input value={workType} onChange={(e) => setWorkType(e.target.value)} placeholder="Фронт работы * (напр. кладка кирпича)" />
       <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Цена (напр. 5000 руб/день)" />
       <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер для связи *" className="font-mono" />
+      <div>
+        <p className="text-sm text-muted-foreground mb-2">Документы нужны?</p>
+        <div className="grid grid-cols-2 gap-3">
+          {['Да', 'Нет'].map((opt) => (
+            <Button
+              key={opt}
+              type="button"
+              variant={docs === opt ? 'default' : 'outline'}
+              onClick={() => setDocs(opt)}
+              className="rounded-xl"
+            >
+              {opt}
+            </Button>
+          ))}
+        </div>
+      </div>
       <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Дополнительный комментарий..." rows={2} />
       <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
         {loading ? 'Отправка...' : 'Отправить заявку в чат'}

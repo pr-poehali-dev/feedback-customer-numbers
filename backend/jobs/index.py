@@ -54,6 +54,7 @@ def handler(event: dict, context) -> dict:
         price = (body.get('price') or '').strip()[:200]
         phone = (body.get('phone') or '').strip()
         work_type = (body.get('work_type') or '').strip()
+        docs = (body.get('docs') or '').strip()[:50]
         comment = (body.get('comment') or '').strip()[:1000]
 
         if not address or not workers or not hours or not phone or not work_type:
@@ -89,6 +90,8 @@ def handler(event: dict, context) -> dict:
         if price:
             lines.append('Цена: %s' % price)
         lines.append('Описание работ: %s' % work_type)
+        if docs:
+            lines.append('Документы: %s' % docs)
         lines.append('Телефон: %s' % phone)
         if comment:
             lines.append('Комментарий: %s' % comment)
