@@ -38,6 +38,12 @@
       "body": {"id": 999999},
       "expectedStatus": 403,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Мои отзывы по телефону участника",
+      "method": "GET",
+      "path": "/?mine=%2B7%20(900)%20000-00-99",
+      "expectedStatus": 200
     }
   ]
 }

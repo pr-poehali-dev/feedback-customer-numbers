@@ -9,6 +9,7 @@ import CheckSection from '@/components/app/CheckSection';
 import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
 import MembersSection from '@/components/app/MembersSection';
+import MyReviewsSection from '@/components/app/MyReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
 
@@ -26,6 +27,7 @@ const Index = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formPhone, setFormPhone] = useState<string | undefined>();
   const [editReview, setEditReview] = useState<ReviewItem | undefined>();
+  const [reviewsRefresh, setReviewsRefresh] = useState(0);
   const [hintClosed, setHintClosed] = useState(() => !!localStorage.getItem('numcheck_hint_closed'));
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [installBannerClosed, setInstallBannerClosed] = useState(() => !!localStorage.getItem('numcheck_install_closed'));
@@ -260,7 +262,7 @@ const Index = () => {
     }
   };
 
-  const afterSubmit = () => { setFormOpen(false); setEditReview(undefined); if (query) handleSearch(); };
+  const afterSubmit = () => { setFormOpen(false); setEditReview(undefined); setReviewsRefresh((v) => v + 1); if (query) handleSearch(); };
 
   const deleteReview = async (rv: ReviewItem) => {
     if (!rv.id) return;
@@ -274,6 +276,7 @@ const Index = () => {
       const data = await res.json();
       if (data.success) {
         toast({ title: 'Отзыв удалён' });
+        setReviewsRefresh((v) => v + 1);
         if (query) handleSearch();
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
@@ -325,6 +328,15 @@ const Index = () => {
         onCloseHint={closeHint}
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
+
+      {p && (
+        <MyReviewsSection
+          myPhone={p.phone}
+          refreshKey={reviewsRefresh}
+          onEditReview={(rv) => { setEditReview(rv); setFormOpen(true); }}
+          onDeleteReview={deleteReview}
+        />
+      )}
 
       {showMembers && (
         <MembersSection

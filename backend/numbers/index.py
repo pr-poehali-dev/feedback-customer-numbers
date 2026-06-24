@@ -79,6 +79,34 @@ def handler(event: dict, context) -> dict:
         if method == 'GET':
             params = event.get('queryStringParameters') or {}
             phone = params.get('phone')
+            mine = params.get('mine')
+
+            if mine:
+                mine_esc = mine.strip().replace("'", "''")
+                cur.execute(
+                    "SELECT r.id, r.rating, r.verdict, r.author, r.comment, r.tags, r.created_at, "
+                    "r.customer_name, r.object_address, r.author_phone, p.phone "
+                    "FROM reviews r JOIN phone_numbers p ON p.id = r.phone_id "
+                    "WHERE r.author_phone = '%s' ORDER BY r.created_at DESC" % mine_esc
+                )
+                mine_list = [
+                    {
+                        'id': r[0],
+                        'rating': r[1],
+                        'verdict': r[2],
+                        'author': r[3] or 'Аноним',
+                        'comment': r[4],
+                        'tags': [t.strip() for t in (r[5] or '').split(',') if t.strip()],
+                        'createdAt': r[6].isoformat() if r[6] else None,
+                        'customerName': r[7] or '',
+                        'objectAddress': r[8] or '',
+                        'authorPhone': r[9] or '',
+                        'phone': r[10],
+                    }
+                    for r in cur.fetchall()
+                ]
+                return {'statusCode': 200, 'headers': _cors_headers(),
+                        'body': json.dumps({'reviews': mine_list}, ensure_ascii=False)}
 
             if phone:
                 digits = re.sub(r'\D', '', phone)
