@@ -146,7 +146,7 @@ const Index = () => {
       const res = await fetch(CHAT_API, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message_id: id, phone: participant.phone }),
+        body: JSON.stringify({ message_id: id, phone: participant.phone, user_name: participant.full_name }),
       });
       const data = await res.json();
       if (!data.success) {

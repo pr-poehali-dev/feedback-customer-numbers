@@ -184,14 +184,19 @@ def handler(event: dict, context) -> dict:
         if not msg_id or not phone:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Нет данных для удаления'}, ensure_ascii=False)}
+        req_name = (body.get('user_name') or '').strip()
         mid = int(msg_id)
-        cur.execute("SELECT author_phone FROM messages WHERE id=%d" % mid)
+        cur.execute("SELECT author_phone, user_name FROM messages WHERE id=%d" % mid)
         found = cur.fetchone()
         if not found:
             return {'statusCode': 404, 'headers': _cors(),
                     'body': json.dumps({'error': 'Сообщение не найдено'}, ensure_ascii=False)}
         owner_phone = _norm_phone(found[0]) if found[0] else ''
-        if phone != owner_phone and phone not in ADMIN_PHONES:
+        owner_name = (found[1] or '').strip()
+        is_admin = phone in ADMIN_PHONES
+        # Свой по телефону ИЛИ (у старого сообщения нет телефона, но совпадает имя)
+        is_owner = (owner_phone and phone == owner_phone) or (not owner_phone and req_name and req_name == owner_name)
+        if not is_owner and not is_admin:
             return {'statusCode': 403, 'headers': _cors(),
                     'body': json.dumps({'error': 'Можно удалять только свои сообщения'}, ensure_ascii=False)}
         cur.execute("DELETE FROM message_reactions WHERE message_id=%d" % mid)
