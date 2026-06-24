@@ -167,7 +167,12 @@ const Index = () => {
         onCloseHint={closeHint}
       />
 
-      {showMembers && <MembersSection onClose={() => setShowMembers(false)} />}
+      {showMembers && (
+        <MembersSection
+          onClose={() => setShowMembers(false)}
+          canManage={!!p && p.phone.replace(/\D/g, '').slice(-10) === '9652000177'}
+        />
+      )}
 
       <ChatSection
         user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
