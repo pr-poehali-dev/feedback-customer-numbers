@@ -140,7 +140,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
           )}
           {messages.map((msg) => {
             const mine = !!myName && msg.user_name === myName;
-            const canDelete = isAdmin || (!!myPhone && msg.author_phone === myPhone);
+            const canDelete = isAdmin || mine || (!!myPhone && msg.author_phone === myPhone);
             return (
             <div key={msg.id} className={`group flex gap-3 ${mine ? 'flex-row-reverse' : ''}`}>
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
