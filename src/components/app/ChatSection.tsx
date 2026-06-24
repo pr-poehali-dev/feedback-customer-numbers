@@ -124,10 +124,16 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [refreshing, setRefreshing] = useState(false);
   const [pushOn, setPushOn] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
+  const [pushHintClosed, setPushHintClosed] = useState(() => !!localStorage.getItem('ms_push_hint_closed'));
 
   useEffect(() => {
     setPushOn(getPushPermission() === 'granted');
   }, []);
+
+  const closePushHint = () => {
+    localStorage.setItem('ms_push_hint_closed', '1');
+    setPushHintClosed(true);
+  };
 
   const togglePush = async () => {
     if (pushBusy) return;
@@ -189,6 +195,26 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
           </button>
         )}
       </div>
+
+      {pushSupported() && !pushOn && !pushHintClosed && (
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="glass rounded-2xl p-4 flex items-center gap-3 relative border border-primary/30">
+            <button onClick={closePushHint} className="absolute top-2.5 right-2.5 text-muted-foreground hover:text-foreground transition-colors">
+              <Icon name="X" size={16} />
+            </button>
+            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+              <Icon name="Bell" size={20} className="text-primary" />
+            </div>
+            <div className="flex-1 min-w-0 pr-4">
+              <p className="text-sm font-semibold">Не пропускайте новые заказы</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Включите уведомления — и мы пришлём push, как только появится новое размещение.</p>
+            </div>
+            <Button onClick={togglePush} disabled={pushBusy} size="sm" className="rounded-xl font-semibold shrink-0">
+              Включить
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap justify-center gap-3 mb-6">
         <Button onClick={openJobForm} className="rounded-xl font-semibold px-8 py-3 text-base">
