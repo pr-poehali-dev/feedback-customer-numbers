@@ -180,7 +180,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                     </div>
                   )}
                   <div className={`rounded-2xl px-4 py-2 ${mine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
-                    {!mine && (
+                    {!mine && !msg.text.startsWith('[[red]]') && (
                       <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
                     )}
                     <p className="text-sm">{renderMessageText(msg.text)}</p>
