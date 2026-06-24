@@ -282,6 +282,7 @@ const Index = () => {
         sendMessage={sendMessage}
         onDeleteMessage={(id) => requireParticipant(() => deleteMessage(id))}
         onReactMessage={(id, emoji) => requireParticipant(() => reactMessage(id, emoji))}
+        onRefresh={loadMessages}
         onOpenAuth={() => {}}
         chatEndRef={chatEndRef}
         onRequireParticipant={requireParticipant}

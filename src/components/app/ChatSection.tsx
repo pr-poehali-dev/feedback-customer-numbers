@@ -20,6 +20,7 @@ interface Props {
   sendMessage: () => void;
   onDeleteMessage?: (id: number) => void;
   onReactMessage?: (id: number, emoji: string) => void;
+  onRefresh?: () => void;
   onOpenAuth: () => void;
   chatEndRef: React.RefObject<HTMLDivElement>;
   onRequireParticipant?: (action: () => void) => void;
@@ -81,10 +82,18 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
-const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, setChatText, sendMessage, onDeleteMessage, onReactMessage, onOpenAuth, chatEndRef, onRequireParticipant }: Props) => {
+const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, setChatText, sendMessage, onDeleteMessage, onReactMessage, onRefresh, onOpenAuth, chatEndRef, onRequireParticipant }: Props) => {
   const myName = user ? (user.name || user.email) : null;
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    onRefresh();
+    setTimeout(() => setRefreshing(false), 800);
+  };
   const openJobForm = () => {
     if (onRequireParticipant) {
       onRequireParticipant(() => setJobFormOpen(true));
@@ -99,6 +108,17 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
         <Icon name="MessageCircle" size={24} className="text-primary" />
         <h2 className="text-2xl font-display font-bold">Общий чат</h2>
         {!user && <span className="text-xs text-muted-foreground">(войдите чтобы писать)</span>}
+        {onRefresh && (
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors rounded-lg px-3 py-1.5 hover:bg-secondary"
+            title="Обновить чат"
+          >
+            <Icon name="RefreshCw" size={16} className={refreshing ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">Обновить</span>
+          </button>
+        )}
       </div>
 
       <div className="flex justify-center mb-6">
