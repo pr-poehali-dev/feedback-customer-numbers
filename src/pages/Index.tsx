@@ -190,7 +190,7 @@ const Index = () => {
     let lastFetch = 0;
     const tick = () => {
       if (document.hidden) return;
-      const period = chatVisibleRef.current ? 60000 : 300000;
+      const period = chatVisibleRef.current ? 120000 : 300000;
       if (Date.now() - lastFetch < period) return;
       lastFetch = Date.now();
       loadMessages();
