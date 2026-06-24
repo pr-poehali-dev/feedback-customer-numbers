@@ -21,6 +21,12 @@
       "expectedStatus": 200
     },
     {
+      "name": "Лёгкий режим с большим since возвращает unchanged",
+      "method": "GET",
+      "path": "/?since=999999999",
+      "expectedStatus": 200
+    },
+    {
       "name": "Удаление без телефона отклоняется",
       "method": "DELETE",
       "path": "/",

@@ -75,6 +75,13 @@ def handler(event: dict, context) -> dict:
 
     # GET — получить последние 50 сообщений с реакциями
     if method == 'GET':
+        params = event.get('queryStringParameters') or {}
+        since_raw = params.get('since')
+        try:
+            since = int(since_raw) if since_raw else None
+        except (TypeError, ValueError):
+            since = None
+
         # Автоудаление: чистим сообщения старше 1 часа (и их реакции)
         cur.execute(
             "DELETE FROM message_reactions WHERE message_id IN "
@@ -82,6 +89,24 @@ def handler(event: dict, context) -> dict:
         )
         cur.execute("DELETE FROM messages WHERE created_at < NOW() - INTERVAL '1 hour'")
         conn.commit()
+
+        # Лёгкий режим: если клиент знает последний ID и новых сообщений нет —
+        # отдаём только сигнатуру (актуальные ID + реакции), не пересобирая всё.
+        if since is not None:
+            cur.execute("SELECT MAX(id) FROM messages")
+            max_row = cur.fetchone()
+            max_id = max_row[0] if max_row and max_row[0] is not None else 0
+            if max_id <= since:
+                cur.execute("SELECT id FROM messages ORDER BY created_at DESC LIMIT 50")
+                cur_ids = [r[0] for r in cur.fetchall()]
+                reactions = _load_reactions(cur, cur_ids)
+                return {'statusCode': 200, 'headers': _cors(),
+                        'body': json.dumps({
+                            'unchanged': True,
+                            'ids': cur_ids,
+                            'reactions': {str(k): v for k, v in reactions.items()},
+                        }, ensure_ascii=False)}
+
         cur.execute(
             "SELECT id, user_name, text, created_at, author_phone FROM messages "
             "ORDER BY created_at DESC LIMIT 50"

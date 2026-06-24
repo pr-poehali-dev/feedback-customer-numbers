@@ -39,6 +39,7 @@ const Index = () => {
   const [unreadChat, setUnreadChat] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
+  const lastFetchedIdRef = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,12 +59,35 @@ const Index = () => {
 
   const loadMessages = async () => {
     try {
-      const res = await fetch(CHAT_API);
+      const since = lastFetchedIdRef.current || 0;
+      const res = await fetch(since ? `${CHAT_API}?since=${since}` : CHAT_API);
       const data = await res.json();
+
+      // Лёгкий ответ: новых сообщений нет — только обновляем реакции и убираем удалённые
+      if (data.unchanged) {
+        const ids: number[] = data.ids || [];
+        const reactionsMap: Record<string, ChatMessage['reactions']> = data.reactions || {};
+        setMessages((prev) => {
+          const idSet = new Set(ids);
+          const next = prev
+            .filter((m) => idSet.has(m.id))
+            .map((m) => {
+              const r = reactionsMap[String(m.id)] || [];
+              if (JSON.stringify(m.reactions || []) === JSON.stringify(r)) return m;
+              return { ...m, reactions: r };
+            });
+          if (next.length === prev.length && next.every((m, i) => m === prev[i])) return prev;
+          return next;
+        });
+        if (chatVisibleRef.current) setUnreadChat(0);
+        return;
+      }
+
       const fresh: ChatMessage[] = data.messages || [];
 
       // Счётчик непрочитанных: считаем сообщения новее последнего просмотренного, пока чат не на экране
       const maxId = fresh.length ? Math.max(...fresh.map((m) => m.id)) : 0;
+      lastFetchedIdRef.current = maxId;
       if (chatVisibleRef.current) {
         lastSeenIdRef.current = maxId;
         setUnreadChat(0);
@@ -116,6 +140,8 @@ const Index = () => {
         });
         const data = await res.json();
         if (data.message) {
+          lastFetchedIdRef.current = Math.max(lastFetchedIdRef.current, data.message.id);
+          lastSeenIdRef.current = Math.max(lastSeenIdRef.current, data.message.id);
           setMessages((prev) => [...prev, data.message]);
           setTimeout(() => {
             const container = chatEndRef.current?.parentElement;
