@@ -7,7 +7,7 @@ import psycopg2
 def _cors_headers():
     return {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, X-Participant-Phone',
         'Access-Control-Max-Age': '86400',
         'Content-Type': 'application/json',
@@ -190,6 +190,38 @@ def handler(event: dict, context) -> dict:
             cur.execute("SELECT phone FROM phone_numbers WHERE id = %s" % phone_id)
             phone = cur.fetchone()[0]
             rec = _build_record(cur, phone_id, phone)
+            return {'statusCode': 200, 'headers': _cors_headers(),
+                    'body': json.dumps({'success': True, 'record': rec}, ensure_ascii=False)}
+
+        if method == 'DELETE':
+            body = json.loads(event.get('body') or '{}')
+            review_id = int(body.get('id', 0))
+            author_phone = (body.get('author_phone') or '').strip()[:32]
+
+            if review_id < 1:
+                return {'statusCode': 400, 'headers': _cors_headers(),
+                        'body': json.dumps({'error': 'Не указан отзыв'}, ensure_ascii=False)}
+            if not author_phone:
+                return {'statusCode': 403, 'headers': _cors_headers(),
+                        'body': json.dumps({'error': 'Нужно войти как участник'},
+                                           ensure_ascii=False)}
+
+            cur.execute("SELECT phone_id, author_phone FROM reviews WHERE id = %s" % review_id)
+            row = cur.fetchone()
+            if not row:
+                return {'statusCode': 404, 'headers': _cors_headers(),
+                        'body': json.dumps({'error': 'Отзыв не найден'}, ensure_ascii=False)}
+            if (row[1] or '') != author_phone:
+                return {'statusCode': 403, 'headers': _cors_headers(),
+                        'body': json.dumps({'error': 'Можно удалять только свои отзывы'},
+                                           ensure_ascii=False)}
+            phone_id = row[0]
+
+            cur.execute("DELETE FROM reviews WHERE id = %s" % review_id)
+            conn.commit()
+            cur.execute("SELECT phone FROM phone_numbers WHERE id = %s" % phone_id)
+            phrow = cur.fetchone()
+            rec = _build_record(cur, phone_id, phrow[0]) if phrow else None
             return {'statusCode': 200, 'headers': _cors_headers(),
                     'body': json.dumps({'success': True, 'record': rec}, ensure_ascii=False)}
 

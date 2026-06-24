@@ -15,6 +15,7 @@ interface Props {
   onToggleTrack: (phone: string) => void;
   onOpenForm: (phone?: string) => void;
   onEditReview?: (rv: ReviewItem) => void;
+  onDeleteReview?: (rv: ReviewItem) => void;
   onCloseHint: () => void;
   onOpenInstall?: () => void;
 }
@@ -35,7 +36,7 @@ const renderStars = (rating: number, size = 14) => (
   </div>
 );
 
-const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, onSearch, onToggleTrack, onOpenForm, onEditReview, onCloseHint, onOpenInstall }: Props) => (
+const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => (
   <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
     <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
@@ -176,14 +177,27 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {renderStars(rv.rating)}
-                        {myPhone && rv.authorPhone && normPhone(rv.authorPhone) === normPhone(myPhone) && onEditReview && (
-                          <button
-                            onClick={() => onEditReview(rv)}
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                            title="Редактировать свой отзыв"
-                          >
-                            <Icon name="Pencil" size={14} />
-                          </button>
+                        {myPhone && rv.authorPhone && normPhone(rv.authorPhone) === normPhone(myPhone) && (
+                          <>
+                            {onEditReview && (
+                              <button
+                                onClick={() => onEditReview(rv)}
+                                className="text-muted-foreground hover:text-primary transition-colors"
+                                title="Редактировать свой отзыв"
+                              >
+                                <Icon name="Pencil" size={14} />
+                              </button>
+                            )}
+                            {onDeleteReview && (
+                              <button
+                                onClick={() => onDeleteReview(rv)}
+                                className="text-muted-foreground hover:text-destructive transition-colors"
+                                title="Удалить свой отзыв"
+                              >
+                                <Icon name="Trash2" size={14} />
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

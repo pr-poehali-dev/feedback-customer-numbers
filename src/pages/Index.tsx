@@ -261,6 +261,28 @@ const Index = () => {
   };
 
   const afterSubmit = () => { setFormOpen(false); setEditReview(undefined); if (query) handleSearch(); };
+
+  const deleteReview = async (rv: ReviewItem) => {
+    if (!rv.id) return;
+    if (!window.confirm('Удалить ваш отзыв? Это действие нельзя отменить.')) return;
+    try {
+      const res = await fetch(API, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: rv.id, author_phone: localStorage.getItem('ms_participant_phone') || '' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: 'Отзыв удалён' });
+        if (query) handleSearch();
+      } else {
+        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Не удалось удалить', variant: 'destructive' });
+    }
+  };
+
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
   const logout = () => { localStorage.removeItem('ms_participant_phone'); window.location.reload(); };
   const ADMIN_PHONES = ['9652000177', '9774951403'];
@@ -298,6 +320,7 @@ const Index = () => {
         onToggleTrack={toggleTrack}
         onOpenForm={(phone) => requireParticipant(() => { setEditReview(undefined); setFormPhone(phone); setFormOpen(true); })}
         onEditReview={(rv) => requireParticipant(() => { setEditReview(rv); setFormOpen(true); })}
+        onDeleteReview={(rv) => requireParticipant(() => deleteReview(rv))}
         myPhone={p?.phone || ''}
         onCloseHint={closeHint}
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
