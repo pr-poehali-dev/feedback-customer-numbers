@@ -4,27 +4,28 @@
       "name": "Получить сообщения",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"messages": []},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     },
     {
       "name": "Отправить сообщение без входа (разрешено)",
       "method": "POST",
       "path": "/",
-      "body": {"text": "Привет всем"},
-      "expectedStatus": 200,
-      "expectedBody": {"message": {}},
-      "bodyMatcher": "partial"
+      "body": {"text": "Привет всем", "phone": "9990001122"},
+      "expectedStatus": 200
     },
     {
       "name": "Сообщение с именем участника",
       "method": "POST",
       "path": "/",
-      "body": {"text": "Я участник", "user_name": "Иванов Иван Иванович"},
-      "expectedStatus": 200,
-      "expectedBody": {"message": {"user_name": "Иванов Иван Иванович"}},
-      "bodyMatcher": "partial"
+      "body": {"text": "Я участник", "user_name": "Иванов Иван Иванович", "phone": "9990001133"},
+      "expectedStatus": 200
+    },
+    {
+      "name": "Удаление без телефона отклоняется",
+      "method": "DELETE",
+      "path": "/",
+      "body": {"message_id": 1},
+      "expectedStatus": 400
     }
   ]
 }

@@ -23,11 +23,20 @@ export interface Member {
   organization: string;
 }
 
+export interface ChatReaction {
+  emoji: string;
+  count: number;
+  users: string[];
+}
+
 export interface ChatMessage {
   id: number;
   user_name: string;
   text: string;
   created_at: string;
+  time?: string;
+  author_phone?: string;
+  reactions?: ChatReaction[];
 }
 
 export const verdictMeta: Record<Verdict, { label: string; color: string; icon: string }> = {

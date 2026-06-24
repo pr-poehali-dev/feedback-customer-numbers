@@ -73,7 +73,7 @@ const Index = () => {
         const res = await fetch(CHAT_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: textToSend, user_name: participant?.full_name }),
+          body: JSON.stringify({ text: textToSend, user_name: participant?.full_name, phone: participant?.phone }),
         });
         const data = await res.json();
         if (data.message) {
@@ -97,6 +97,44 @@ const Index = () => {
       }
     }
     setChatSending(false);
+  };
+
+  const deleteMessage = async (id: number) => {
+    if (!participant) return;
+    const prev = messages;
+    setMessages((m) => m.filter((msg) => msg.id !== id));
+    try {
+      const res = await fetch(CHAT_API, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message_id: id, phone: participant.phone }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setMessages(prev);
+        toast({ title: data.error || 'Не удалось удалить', variant: 'destructive' });
+      }
+    } catch {
+      setMessages(prev);
+      toast({ title: 'Нет связи с сервером', variant: 'destructive' });
+    }
+  };
+
+  const reactMessage = async (id: number, emoji: string) => {
+    if (!participant) return;
+    try {
+      const res = await fetch(CHAT_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'react', message_id: id, emoji, phone: participant.phone }),
+      });
+      const data = await res.json();
+      if (data.message_id) {
+        setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, reactions: data.reactions } : msg)));
+      }
+    } catch {
+      toast({ title: 'Не удалось поставить реакцию', variant: 'destructive' });
+    }
   };
 
   useEffect(() => {
@@ -179,11 +217,15 @@ const Index = () => {
 
       <ChatSection
         user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
+        myPhone={p ? p.phone.replace(/\D/g, '').slice(-10) : ''}
+        isAdmin={!!p && p.phone.replace(/\D/g, '').slice(-10) === '9652000177'}
         messages={messages}
         chatText={chatText}
         chatSending={chatSending}
         setChatText={setChatText}
         sendMessage={sendMessage}
+        onDeleteMessage={(id) => requireParticipant(() => deleteMessage(id))}
+        onReactMessage={(id, emoji) => requireParticipant(() => reactMessage(id, emoji))}
         onOpenAuth={() => {}}
         chatEndRef={chatEndRef}
         onRequireParticipant={requireParticipant}

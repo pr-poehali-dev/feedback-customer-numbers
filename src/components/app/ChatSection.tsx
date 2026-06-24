@@ -11,15 +11,21 @@ const JOBS_API = 'https://functions.poehali.dev/9db3fbb7-d09a-451b-9b2c-f7593305
 
 interface Props {
   user: User | null;
+  myPhone?: string;
+  isAdmin?: boolean;
   messages: ChatMessage[];
   chatText: string;
   chatSending: boolean;
   setChatText: (v: string) => void;
   sendMessage: () => void;
+  onDeleteMessage?: (id: number) => void;
+  onReactMessage?: (id: number, emoji: string) => void;
   onOpenAuth: () => void;
   chatEndRef: React.RefObject<HTMLDivElement>;
   onRequireParticipant?: (action: () => void) => void;
 }
+
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '👎', '🙏'];
 
 const JobForm = ({ onDone }: { onDone: () => void }) => {
   const [address, setAddress] = useState('');
@@ -75,9 +81,10 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
-const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendMessage, onOpenAuth, chatEndRef, onRequireParticipant }: Props) => {
+const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, setChatText, sendMessage, onDeleteMessage, onReactMessage, onOpenAuth, chatEndRef, onRequireParticipant }: Props) => {
   const myName = user ? (user.name || user.email) : null;
   const [jobFormOpen, setJobFormOpen] = useState(false);
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
   const openJobForm = () => {
     if (onRequireParticipant) {
       onRequireParticipant(() => setJobFormOpen(true));
@@ -111,22 +118,85 @@ const ChatSection = ({ user, messages, chatText, chatSending, setChatText, sendM
               <p className="text-sm">Пока нет сообщений. Начните общение!</p>
             </div>
           )}
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex gap-3 ${myName && msg.user_name === myName ? 'flex-row-reverse' : ''}`}>
+          {messages.map((msg) => {
+            const mine = !!myName && msg.user_name === myName;
+            const canDelete = isAdmin || (!!myPhone && msg.author_phone === myPhone);
+            return (
+            <div key={msg.id} className={`group flex gap-3 ${mine ? 'flex-row-reverse' : ''}`}>
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
                 {(msg.user_name || '?').charAt(0).toUpperCase()}
               </div>
-              <div className={`max-w-[75%] ${myName && msg.user_name === myName ? 'items-end' : 'items-start'} flex flex-col`}>
-                <div className={`rounded-2xl px-4 py-2 ${myName && msg.user_name === myName ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
-                  {!(myName && msg.user_name === myName) && (
-                    <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
+              <div className={`max-w-[78%] ${mine ? 'items-end' : 'items-start'} flex flex-col relative`}>
+                <div className="flex items-end gap-1.5">
+                  {mine && (
+                    <div className="flex items-center gap-1 self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      {onReactMessage && (
+                        <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1" title="Реакция">
+                          <Icon name="SmilePlus" size={15} />
+                        </button>
+                      )}
+                      {canDelete && onDeleteMessage && (
+                        <button onClick={() => onDeleteMessage(msg.id)} className="text-muted-foreground hover:text-destructive p-1" title="Удалить">
+                          <Icon name="Trash2" size={15} />
+                        </button>
+                      )}
+                    </div>
                   )}
-                  <p className="text-sm whitespace-pre-line break-words">{msg.text}</p>
+                  <div className={`rounded-2xl px-4 py-2 ${mine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
+                    {!mine && (
+                      <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
+                    )}
+                    <p className="text-sm whitespace-pre-line break-words">{msg.text}</p>
+                  </div>
+                  {!mine && (
+                    <div className="flex items-center gap-1 self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      {onReactMessage && (
+                        <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1" title="Реакция">
+                          <Icon name="SmilePlus" size={15} />
+                        </button>
+                      )}
+                      {canDelete && onDeleteMessage && (
+                        <button onClick={() => onDeleteMessage(msg.id)} className="text-muted-foreground hover:text-destructive p-1" title="Удалить">
+                          <Icon name="Trash2" size={15} />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 px-1">{msg.created_at}</p>
+
+                {pickerFor === msg.id && onReactMessage && (
+                  <div className={`flex gap-1 mt-1.5 glass rounded-full px-2 py-1 ${mine ? 'self-end' : 'self-start'}`}>
+                    {REACTION_EMOJIS.map((e) => (
+                      <button key={e} onClick={() => { onReactMessage(msg.id, e); setPickerFor(null); }} className="text-lg hover:scale-125 transition-transform px-0.5">
+                        {e}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {msg.reactions && msg.reactions.length > 0 && (
+                  <div className={`flex flex-wrap gap-1 mt-1.5 ${mine ? 'justify-end' : ''}`}>
+                    {msg.reactions.map((r) => {
+                      const reacted = !!myPhone && r.users.includes(myPhone);
+                      return (
+                        <button
+                          key={r.emoji}
+                          onClick={() => onReactMessage && onReactMessage(msg.id, r.emoji)}
+                          className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border transition-colors ${reacted ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-secondary border-transparent hover:border-border'}`}
+                        >
+                          <span className="text-sm leading-none">{r.emoji}</span>
+                          <span className="font-medium">{r.count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p className="text-[11px] text-muted-foreground mt-1 px-1">{msg.time || msg.created_at}</p>
               </div>
             </div>
-          ))}
+            );
+          })}
           <div ref={chatEndRef} />
         </div>
         <div className="border-t border-border p-3 flex gap-2">
