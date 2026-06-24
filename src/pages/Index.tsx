@@ -57,7 +57,32 @@ const Index = () => {
     try {
       const res = await fetch(CHAT_API);
       const data = await res.json();
-      setMessages(data.messages || []);
+      const fresh: ChatMessage[] = data.messages || [];
+      setMessages((prev) => {
+        // Обновляем состояние только при реальных изменениях — без лишних перерисовок и мигания
+        if (prev.length === fresh.length) {
+          let same = true;
+          for (let i = 0; i < fresh.length; i++) {
+            const a = prev[i];
+            const b = fresh[i];
+            if (
+              a.id !== b.id ||
+              a.text !== b.text ||
+              JSON.stringify(a.reactions || []) !== JSON.stringify(b.reactions || [])
+            ) { same = false; break; }
+          }
+          if (same) return prev;
+        }
+        // Если появилось новое сообщение и пользователь внизу чата — подскроллим
+        const container = chatEndRef.current?.parentElement;
+        const nearBottom = container
+          ? container.scrollHeight - container.scrollTop - container.clientHeight < 120
+          : false;
+        if (fresh.length > prev.length && nearBottom) {
+          setTimeout(() => { if (container) container.scrollTop = container.scrollHeight; }, 50);
+        }
+        return fresh;
+      });
     } catch { /* тихо */ }
   };
 
@@ -148,7 +173,7 @@ const Index = () => {
     // Опрашиваем только когда вкладка активна — экономим вызовы
     const interval = setInterval(() => {
       if (!document.hidden) loadMessages();
-    }, 15000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
