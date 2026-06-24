@@ -10,7 +10,7 @@ import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
 import MembersSection from '@/components/app/MembersSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
-import { API, CHAT_API, NumberRecord, ChatMessage } from '@/components/app/types';
+import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -25,6 +25,7 @@ const Index = () => {
   const [tracked, setTracked] = useState<string[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [formPhone, setFormPhone] = useState<string | undefined>();
+  const [editReview, setEditReview] = useState<ReviewItem | undefined>();
   const [hintClosed, setHintClosed] = useState(() => !!localStorage.getItem('numcheck_hint_closed'));
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [installBannerClosed, setInstallBannerClosed] = useState(() => !!localStorage.getItem('numcheck_install_closed'));
@@ -259,7 +260,7 @@ const Index = () => {
     }
   };
 
-  const afterSubmit = () => { setFormOpen(false); if (query) handleSearch(); };
+  const afterSubmit = () => { setFormOpen(false); setEditReview(undefined); if (query) handleSearch(); };
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
   const logout = () => { localStorage.removeItem('ms_participant_phone'); window.location.reload(); };
   const ADMIN_PHONES = ['9652000177', '9774951403'];
@@ -295,7 +296,9 @@ const Index = () => {
         tracked={tracked}
         onSearch={handleSearch}
         onToggleTrack={toggleTrack}
-        onOpenForm={(phone) => requireParticipant(() => { setFormPhone(phone); setFormOpen(true); })}
+        onOpenForm={(phone) => requireParticipant(() => { setEditReview(undefined); setFormPhone(phone); setFormOpen(true); })}
+        onEditReview={(rv) => requireParticipant(() => { setEditReview(rv); setFormOpen(true); })}
+        myPhone={p?.phone || ''}
         onCloseHint={closeHint}
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
@@ -428,12 +431,12 @@ const Index = () => {
         </div>
       )}
 
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+      <Dialog open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) setEditReview(undefined); }}>
         <DialogContent className="glass">
           <DialogHeader>
-            <DialogTitle className="font-display">Оставить отзыв о номере</DialogTitle>
+            <DialogTitle className="font-display">{editReview ? 'Редактировать отзыв' : 'Оставить отзыв о номере'}</DialogTitle>
           </DialogHeader>
-          <ReviewForm defaultPhone={formPhone} onDone={afterSubmit} />
+          <ReviewForm defaultPhone={formPhone} editReview={editReview} onDone={afterSubmit} />
         </DialogContent>
       </Dialog>
     </div>

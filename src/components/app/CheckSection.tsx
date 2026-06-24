@@ -1,6 +1,6 @@
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
-import { NumberRecord, verdictMeta } from './types';
+import { NumberRecord, ReviewItem, verdictMeta } from './types';
 
 interface Props {
   query: string;
@@ -10,12 +10,16 @@ interface Props {
   searching: boolean;
   hintClosed: boolean;
   tracked: string[];
+  myPhone?: string;
   onSearch: () => void;
   onToggleTrack: (phone: string) => void;
   onOpenForm: (phone?: string) => void;
+  onEditReview?: (rv: ReviewItem) => void;
   onCloseHint: () => void;
   onOpenInstall?: () => void;
 }
+
+const normPhone = (p?: string) => (p || '').replace(/\D/g, '').slice(-10);
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -31,7 +35,7 @@ const renderStars = (rating: number, size = 14) => (
   </div>
 );
 
-const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, onSearch, onToggleTrack, onOpenForm, onCloseHint, onOpenInstall }: Props) => (
+const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, onSearch, onToggleTrack, onOpenForm, onEditReview, onCloseHint, onOpenInstall }: Props) => (
   <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
     <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
@@ -170,7 +174,18 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
                           <span className="text-xs text-muted-foreground shrink-0">{formatDate(rv.createdAt)}</span>
                         )}
                       </div>
-                      {renderStars(rv.rating)}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {renderStars(rv.rating)}
+                        {myPhone && rv.authorPhone && normPhone(rv.authorPhone) === normPhone(myPhone) && onEditReview && (
+                          <button
+                            onClick={() => onEditReview(rv)}
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                            title="Редактировать свой отзыв"
+                          >
+                            <Icon name="Pencil" size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {(rv.customerName || rv.objectAddress) && (
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mb-2">

@@ -7,6 +7,7 @@ export interface User { id: number; email: string; name: string; }
 export type Verdict = 'safe' | 'risky' | 'scam';
 
 export interface ReviewItem {
+  id?: number;
   rating: number;
   verdict: Verdict;
   author: string;
@@ -15,7 +16,10 @@ export interface ReviewItem {
   createdAt: string | null;
   customerName: string;
   objectAddress: string;
+  authorPhone?: string;
 }
+
+export const getParticipantPhone = () => localStorage.getItem('ms_participant_phone') || '';
 
 export interface NumberRecord {
   phone: string;

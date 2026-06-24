@@ -18,9 +18,17 @@
       "name": "Добавление отзыва",
       "method": "POST",
       "path": "/",
-      "body": {"phone": "+7 (900) 000-00-01", "rating": 4, "comment": "Тестовый отзыв", "author": "Тест", "tags": "Платит вовремя"},
+      "body": {"phone": "+7 (900) 000-00-01", "rating": 4, "comment": "Тестовый отзыв", "author": "Тест", "tags": "Платит вовремя", "author_phone": "+7 (900) 000-00-99"},
       "expectedStatus": 200,
       "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Редактирование без участника запрещено",
+      "method": "PUT",
+      "path": "/",
+      "body": {"id": 999999, "rating": 5, "comment": "Попытка правки"},
+      "expectedStatus": 403,
       "bodyMatcher": "partial"
     }
   ]
