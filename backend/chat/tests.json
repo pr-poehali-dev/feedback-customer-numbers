@@ -16,6 +16,15 @@
       "expectedStatus": 200,
       "expectedBody": {"message": {}},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Сообщение с именем участника",
+      "method": "POST",
+      "path": "/",
+      "body": {"text": "Я участник", "user_name": "Иванов Иван Иванович"},
+      "expectedStatus": 200,
+      "expectedBody": {"message": {"user_name": "Иванов Иван Иванович"}},
+      "bodyMatcher": "partial"
     }
   ]
 }

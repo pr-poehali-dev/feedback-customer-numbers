@@ -61,6 +61,10 @@ def handler(event: dict, context) -> dict:
         if not text:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Сообщение не может быть пустым'}, ensure_ascii=False)}
+        # Имя участника из тела запроса (регистрация по ФИО + телефон)
+        body_name = (body.get('user_name') or '').strip()[:200]
+        if not user and body_name:
+            user_name = body_name
         name_esc = (user_name or 'Гость').replace("'", "''")
         text_esc = text.replace("'", "''")
         uid_val = str(user_id) if user_id else 'NULL'
@@ -74,7 +78,7 @@ def handler(event: dict, context) -> dict:
                 'body': json.dumps({
                     'message': {
                         'id': row[0],
-                        'user_name': user_name or 'Участник',
+                        'user_name': user_name or 'Гость',
                         'text': text,
                         'created_at': row[1].strftime('%d.%m.%Y %H:%M') if row[1] else '',
                     }

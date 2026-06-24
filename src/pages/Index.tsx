@@ -8,6 +8,8 @@ import AppHeader from '@/components/app/AppHeader';
 import CheckSection from '@/components/app/CheckSection';
 import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
+import MembersSection from '@/components/app/MembersSection';
+import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage } from '@/components/app/types';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -31,6 +33,7 @@ const Index = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatText, setChatText] = useState('');
   const [chatSending, setChatSending] = useState(false);
+  const [participant, setParticipant] = useState<Participant | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -68,7 +71,7 @@ const Index = () => {
         const res = await fetch(CHAT_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: textToSend }),
+          body: JSON.stringify({ text: textToSend, user_name: participant?.full_name }),
         });
         const data = await res.json();
         if (data.message) {
@@ -136,10 +139,12 @@ const Index = () => {
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
 
   return (
+    <ParticipantGate onReady={setParticipant}>
+      {((requireParticipant: (action: () => void) => void, p: Participant | null) => (
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      <AppHeader onOpenForm={() => { setFormOpen(true); }} />
+      <AppHeader onOpenForm={() => requireParticipant(() => setFormOpen(true))} />
 
       <CheckSection
         query={query}
@@ -151,12 +156,14 @@ const Index = () => {
         tracked={tracked}
         onSearch={handleSearch}
         onToggleTrack={toggleTrack}
-        onOpenForm={(phone) => { setFormPhone(phone); setFormOpen(true); }}
+        onOpenForm={(phone) => requireParticipant(() => { setFormPhone(phone); setFormOpen(true); })}
         onCloseHint={closeHint}
       />
 
+      <MembersSection />
+
       <ChatSection
-        user={null}
+        user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
         messages={messages}
         chatText={chatText}
         chatSending={chatSending}
@@ -164,6 +171,7 @@ const Index = () => {
         sendMessage={sendMessage}
         onOpenAuth={() => {}}
         chatEndRef={chatEndRef}
+        onRequireParticipant={requireParticipant}
       />
 
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">
@@ -221,6 +229,8 @@ const Index = () => {
         </DialogContent>
       </Dialog>
     </div>
+      )) as unknown as React.ReactNode}
+    </ParticipantGate>
   );
 };
 
