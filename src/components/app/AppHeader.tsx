@@ -9,11 +9,13 @@ interface Props {
   onOpenMembers?: () => void;
   onOpenInstall?: () => void;
   onLogout?: () => void;
+  onLogin?: () => void;
+  isLoggedIn?: boolean;
   participantName?: string;
   unreadChat?: number;
 }
 
-const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, participantName, unreadChat = 0 }: Props) => {
+const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin, isLoggedIn, participantName, unreadChat = 0 }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleNav = (id: string) => {
@@ -66,6 +68,21 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, partici
             <Icon name="Share2" size={15} />
             <span className="hidden sm:inline">Поделиться</span>
           </Button>
+          {isLoggedIn ? (
+            onLogout && (
+              <Button size="sm" variant="ghost" className="rounded-lg font-medium" onClick={onLogout} title={participantName}>
+                <Icon name="LogOut" size={15} />
+                <span className="hidden md:inline">Выйти</span>
+              </Button>
+            )
+          ) : (
+            onLogin && (
+              <Button size="sm" className="rounded-lg font-medium" onClick={onLogin}>
+                <Icon name="LogIn" size={15} />
+                <span className="hidden sm:inline">Войти</span>
+              </Button>
+            )
+          )}
           <button
             onClick={() => setMenuOpen((v) => !v)}
             className="md:hidden relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -100,10 +117,16 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, partici
               Установить приложение
             </button>
           )}
-          {onLogout && (
+          {isLoggedIn && onLogout && (
             <button onClick={() => { setMenuOpen(false); onLogout(); }} className="px-3 py-3 rounded-lg text-sm text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-3 border-t border-border mt-1 pt-3">
               <Icon name="LogOut" size={18} className="text-primary" />
-              <span>Сменить участника{participantName ? ` (${participantName})` : ''}</span>
+              <span>Выйти{participantName ? ` (${participantName})` : ''}</span>
+            </button>
+          )}
+          {!isLoggedIn && onLogin && (
+            <button onClick={() => { setMenuOpen(false); onLogin(); }} className="px-3 py-3 rounded-lg text-sm text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-3 border-t border-border mt-1 pt-3">
+              <Icon name="LogIn" size={18} className="text-primary" />
+              <span>Войти</span>
             </button>
           )}
         </nav>

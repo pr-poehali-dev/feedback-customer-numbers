@@ -244,7 +244,9 @@ const Index = () => {
           setTimeout(() => document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' }), 50);
         }}
         onOpenInstall={isStandalone ? undefined : () => setInstallHelpOpen(true)}
-        onLogout={p ? logout : undefined}
+        onLogout={logout}
+        onLogin={() => requireParticipant(() => {})}
+        isLoggedIn={!!p}
         participantName={p?.full_name}
         unreadChat={unreadChat}
       />
