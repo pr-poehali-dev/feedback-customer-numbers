@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { User, ChatMessage } from './types';
-import { enablePush, disablePush, getPushPermission, pushSupported } from './push';
 
 const JOBS_API = 'https://functions.poehali.dev/9db3fbb7-d09a-451b-9b2c-f75933050bb9';
 
@@ -122,46 +121,6 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [pushOn, setPushOn] = useState(false);
-  const [pushBusy, setPushBusy] = useState(false);
-  const [pushHintClosed, setPushHintClosed] = useState(() => !!localStorage.getItem('ms_push_hint_closed'));
-
-  useEffect(() => {
-    setPushOn(getPushPermission() === 'granted');
-  }, []);
-
-  const closePushHint = () => {
-    localStorage.setItem('ms_push_hint_closed', '1');
-    setPushHintClosed(true);
-  };
-
-  const togglePush = async () => {
-    if (pushBusy) return;
-    setPushBusy(true);
-    try {
-      if (pushOn) {
-        await disablePush();
-        setPushOn(false);
-        toast({ title: 'Уведомления выключены' });
-      } else {
-        const res = await enablePush();
-        if (res.ok) {
-          setPushOn(true);
-          toast({ title: 'Уведомления включены! Будем присылать новые размещения' });
-        } else if (res.reason === 'denied') {
-          toast({ title: 'Разрешите уведомления в настройках браузера', variant: 'destructive' });
-        } else if (res.reason === 'unsupported') {
-          toast({ title: 'Это устройство не поддерживает уведомления', variant: 'destructive' });
-        } else {
-          toast({ title: 'Не удалось включить уведомления', variant: 'destructive' });
-        }
-      }
-    } catch {
-      toast({ title: 'Ошибка уведомлений', variant: 'destructive' });
-    } finally {
-      setPushBusy(false);
-    }
-  };
 
   const handleRefresh = () => {
     if (!onRefresh || refreshing) return;
@@ -196,41 +155,10 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
         )}
       </div>
 
-      {pushSupported() && !pushOn && !pushHintClosed && (
-        <div className="max-w-2xl mx-auto mb-6">
-          <div className="glass rounded-2xl p-4 flex items-center gap-3 relative border border-primary/30">
-            <button onClick={closePushHint} className="absolute top-2.5 right-2.5 text-muted-foreground hover:text-foreground transition-colors">
-              <Icon name="X" size={16} />
-            </button>
-            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-              <Icon name="Bell" size={20} className="text-primary" />
-            </div>
-            <div className="flex-1 min-w-0 pr-4">
-              <p className="text-sm font-semibold">Не пропускайте новые заказы</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Включите уведомления — и мы пришлём push, как только появится новое размещение.</p>
-            </div>
-            <Button onClick={togglePush} disabled={pushBusy} size="sm" className="rounded-xl font-semibold shrink-0">
-              Включить
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-wrap justify-center gap-3 mb-6">
+      <div className="flex justify-center mb-6">
         <Button onClick={openJobForm} className="rounded-xl font-semibold px-8 py-3 text-base">
           <Icon name="ClipboardList" size={18} />Размещение заказов
         </Button>
-        {pushSupported() && (
-          <Button
-            onClick={togglePush}
-            disabled={pushBusy}
-            variant={pushOn ? 'secondary' : 'outline'}
-            className="rounded-xl font-semibold px-6 py-3 text-base"
-          >
-            <Icon name={pushOn ? 'BellRing' : 'BellOff'} size={18} />
-            {pushOn ? 'Уведомления вкл.' : 'Включить уведомления'}
-          </Button>
-        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start max-w-6xl mx-auto">
