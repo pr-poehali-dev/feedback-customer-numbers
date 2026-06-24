@@ -26,7 +26,8 @@ interface Props {
   onRequireParticipant?: (action: () => void) => void;
 }
 
-const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '👎', '🙏'];
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '👎', '🙏', '✅'];
+const REACTION_LABELS: Record<string, string> = { '✅': 'Заказ закрыт' };
 
 const JobForm = ({ onDone }: { onDone: () => void }) => {
   const [address, setAddress] = useState('');
@@ -185,10 +186,13 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                 </div>
 
                 {pickerFor === msg.id && onReactMessage && (
-                  <div className={`flex gap-1 mt-1.5 glass rounded-full px-2 py-1 ${mine ? 'self-end' : 'self-start'}`}>
+                  <div className={`flex items-center gap-1 mt-1.5 glass rounded-full px-2 py-1 ${mine ? 'self-end' : 'self-start'}`}>
                     {REACTION_EMOJIS.map((e) => (
-                      <button key={e} onClick={() => { onReactMessage(msg.id, e); setPickerFor(null); }} className="text-lg hover:scale-125 transition-transform px-0.5">
-                        {e}
+                      <button key={e} onClick={() => { onReactMessage(msg.id, e); setPickerFor(null); }}
+                        className="hover:scale-110 transition-transform px-0.5 flex items-center gap-1"
+                        title={REACTION_LABELS[e]}>
+                        <span className="text-lg">{e}</span>
+                        {REACTION_LABELS[e] && <span className="text-xs font-medium text-primary pr-1">{REACTION_LABELS[e]}</span>}
                       </button>
                     ))}
                   </div>
@@ -205,6 +209,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                           className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border transition-colors ${reacted ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-secondary border-transparent hover:border-border'}`}
                         >
                           <span className="text-sm leading-none">{r.emoji}</span>
+                          {REACTION_LABELS[r.emoji] && <span className="font-medium">{REACTION_LABELS[r.emoji]}</span>}
                           <span className="font-medium">{r.count}</span>
                         </button>
                       );

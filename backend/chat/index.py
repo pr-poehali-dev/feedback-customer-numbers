@@ -11,7 +11,7 @@ def _fmt(dt, fmt):
     if not dt:
         return ''
     return (dt + TZ_OFFSET).strftime(fmt)
-ALLOWED_EMOJI = {'👍', '❤️', '😂', '🔥', '👎', '🙏'}
+ALLOWED_EMOJI = {'👍', '❤️', '😂', '🔥', '👎', '🙏', '✅'}
 
 
 def _cors():
