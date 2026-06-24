@@ -119,6 +119,23 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
       </button>
     )}
 
+    <a
+      href="https://wa.me/79250177666"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="animate-fade-up max-w-xl mx-auto mt-4 w-full glass rounded-xl px-4 py-3 flex items-center gap-3 text-left hover:bg-secondary/40 transition-colors group"
+      style={{ animationDelay: '0.2s' }}
+    >
+      <div className="w-9 h-9 rounded-lg bg-[#25D366]/15 flex items-center justify-center shrink-0">
+        <Icon name="MessageCircle" size={18} className="text-[#25D366]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold">Наша группа в WhatsApp</p>
+        <p className="text-xs text-muted-foreground">Присоединяйтесь — заказы, общение и новости бригады</p>
+      </div>
+      <Icon name="ChevronRight" size={18} className="text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+    </a>
+
     {searched && (
       <div className="animate-fade-up max-w-xl mx-auto mt-8">
         {result ? (
