@@ -202,6 +202,7 @@ const Index = () => {
 
   const afterSubmit = () => { setFormOpen(false); if (query) handleSearch(); };
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
+  const logout = () => { localStorage.removeItem('ms_participant_phone'); window.location.reload(); };
 
   return (
     <ParticipantGate onReady={setParticipant}>
@@ -216,6 +217,8 @@ const Index = () => {
           setTimeout(() => document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' }), 50);
         }}
         onOpenInstall={isStandalone ? undefined : () => setInstallHelpOpen(true)}
+        onLogout={p ? logout : undefined}
+        participantName={p?.full_name}
       />
 
       <CheckSection
