@@ -35,6 +35,7 @@ const Index = () => {
   const [chatSending, setChatSending] = useState(false);
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [showMembers, setShowMembers] = useState(false);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -151,6 +152,7 @@ const Index = () => {
           setShowMembers(true);
           setTimeout(() => document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' }), 50);
         }}
+        onOpenInstall={isStandalone ? undefined : () => setInstallHelpOpen(true)}
       />
 
       <CheckSection
@@ -201,6 +203,54 @@ const Index = () => {
       <footer className="relative z-10 border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>© 2026 Микс Строй — проверка номеров заказчиков</p>
       </footer>
+
+      <Dialog open={installHelpOpen} onOpenChange={setInstallHelpOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Smartphone" size={20} className="text-primary" />
+              Установить приложение
+            </DialogTitle>
+          </DialogHeader>
+          {isIos ? (
+            <div className="space-y-3 pt-1">
+              <p className="text-sm text-muted-foreground">Чтобы приложение появилось на главном экране iPhone:</p>
+              <div className="flex items-start gap-3 text-sm">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-xs">1</span>
+                <span>Нажмите значок <Icon name="Share2" size={15} className="inline text-primary -mt-0.5" /> «Поделиться» внизу браузера Safari</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-xs">2</span>
+                <span>Пролистайте и выберите «На экран „Домой“»</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-xs">3</span>
+                <span>Нажмите «Добавить» в правом верхнем углу</span>
+              </div>
+            </div>
+          ) : installPrompt ? (
+            <div className="space-y-3 pt-1">
+              <p className="text-sm text-muted-foreground">Нажмите кнопку — приложение установится на ваш телефон.</p>
+              <Button onClick={() => { handleInstall(); setInstallHelpOpen(false); }} className="w-full rounded-lg">
+                <Icon name="Download" size={16} />
+                Установить на телефон
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3 pt-1">
+              <p className="text-sm text-muted-foreground">Чтобы добавить приложение на телефон:</p>
+              <div className="flex items-start gap-3 text-sm">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-xs">1</span>
+                <span>Откройте меню браузера <Icon name="EllipsisVertical" size={15} className="inline text-primary -mt-0.5" /> (три точки вверху справа)</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 text-xs">2</span>
+                <span>Выберите «Установить приложение» или «Добавить на главный экран»</span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {!installBannerClosed && !isStandalone && (installPrompt || isIos) && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-fade-up">

@@ -7,9 +7,10 @@ import { navItems } from './types';
 interface Props {
   onOpenForm: () => void;
   onOpenMembers?: () => void;
+  onOpenInstall?: () => void;
 }
 
-const AppHeader = ({ onOpenForm, onOpenMembers }: Props) => {
+const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleNav = (id: string) => {
@@ -75,6 +76,12 @@ const AppHeader = ({ onOpenForm, onOpenMembers }: Props) => {
               {item.label}
             </button>
           ))}
+          {onOpenInstall && (
+            <button onClick={() => { setMenuOpen(false); onOpenInstall(); }} className="px-3 py-3 rounded-lg text-sm text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-3 border-t border-border mt-1 pt-3">
+              <Icon name="Smartphone" size={18} className="text-primary" />
+              Установить приложение
+            </button>
+          )}
         </nav>
       )}
     </header>
