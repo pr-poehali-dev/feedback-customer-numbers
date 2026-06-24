@@ -184,10 +184,10 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Опрос раз в 15с при активной вкладке. Когда чат на экране — счётчик сбрасывается,
+    // Опрос раз в минуту при активной вкладке. Когда чат на экране — счётчик сбрасывается,
     // когда чат не виден — растёт значок непрочитанных. Экономим вычислительное время.
     const tick = () => { if (!document.hidden) loadMessages(); };
-    const interval = setInterval(tick, 15000);
+    const interval = setInterval(tick, 60000);
 
     const chatEl = document.getElementById('chat');
     const observer = new IntersectionObserver(
