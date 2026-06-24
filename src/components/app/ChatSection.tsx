@@ -83,6 +83,22 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
+const renderMessageText = (text: string) => {
+  if (text.startsWith('[[red]]')) {
+    const rest = text.slice('[[red]]'.length);
+    const nl = rest.indexOf('\n');
+    const title = nl === -1 ? rest : rest.slice(0, nl);
+    const body = nl === -1 ? '' : rest.slice(nl + 1);
+    return (
+      <>
+        <span className="block text-lg font-extrabold text-red-600 mb-1">{title}</span>
+        {body && <span className="block text-sm whitespace-pre-line break-words">{body}</span>}
+      </>
+    );
+  }
+  return <span className="whitespace-pre-line break-words">{text}</span>;
+};
+
 const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, setChatText, sendMessage, onDeleteMessage, onReactMessage, onRefresh, onOpenAuth, chatEndRef, onRequireParticipant }: Props) => {
   const myName = user ? (user.name || user.email) : null;
   const [jobFormOpen, setJobFormOpen] = useState(false);
@@ -167,7 +183,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                     {!mine && (
                       <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
                     )}
-                    <p className="text-sm whitespace-pre-line break-words">{msg.text}</p>
+                    <p className="text-sm">{renderMessageText(msg.text)}</p>
                   </div>
                   {!mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">

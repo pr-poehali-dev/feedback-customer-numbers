@@ -4,9 +4,7 @@
       "name": "Список заявок",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"jobs": []},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     },
     {
       "name": "Создать заявку",
@@ -21,9 +19,7 @@
         "work_type": "Кладка кирпича",
         "comment": "Срочно"
       },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }

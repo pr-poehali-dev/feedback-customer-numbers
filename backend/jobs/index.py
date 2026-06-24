@@ -82,7 +82,7 @@ def handler(event: dict, context) -> dict:
 
         # Формируем сообщение в общий чат
         n = 1
-        lines = ['📋 НОВАЯ ЗАЯВКА НА РАБОТУ', '']
+        lines = ['[[red]]НОВОЕ РАЗМЕЩЕНИЕ', '']
         lines.append('%d. %s' % (n, address)); n += 1
         lines.append('%d. %s чел.' % (n, workers)); n += 1
         lines.append('%d. %s рабочих часов' % (n, int(hours) if hours == int(hours) else hours)); n += 1
