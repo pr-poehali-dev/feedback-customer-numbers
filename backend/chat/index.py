@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 import psycopg2
 
-ADMIN_PHONE = '9652000177'
+ADMIN_PHONES = {'9652000177', '9774951403'}
 TZ_OFFSET = timedelta(hours=3)  # Москва (UTC+3)
 
 
@@ -184,7 +184,7 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 404, 'headers': _cors(),
                     'body': json.dumps({'error': 'Сообщение не найдено'}, ensure_ascii=False)}
         owner_phone = _norm_phone(found[0]) if found[0] else ''
-        if phone != owner_phone and phone != ADMIN_PHONE:
+        if phone != owner_phone and phone not in ADMIN_PHONES:
             return {'statusCode': 403, 'headers': _cors(),
                     'body': json.dumps({'error': 'Можно удалять только свои сообщения'}, ensure_ascii=False)}
         cur.execute("DELETE FROM message_reactions WHERE message_id=%d" % mid)

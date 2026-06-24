@@ -203,6 +203,8 @@ const Index = () => {
   const afterSubmit = () => { setFormOpen(false); if (query) handleSearch(); };
   const closeHint = () => { localStorage.setItem('numcheck_hint_closed', '1'); setHintClosed(true); };
   const logout = () => { localStorage.removeItem('ms_participant_phone'); window.location.reload(); };
+  const ADMIN_PHONES = ['9652000177', '9774951403'];
+  const isAdmin = (pp: Participant | null) => !!pp && ADMIN_PHONES.includes(pp.phone.replace(/\D/g, '').slice(-10));
 
   return (
     <ParticipantGate onReady={setParticipant}>
@@ -239,14 +241,14 @@ const Index = () => {
       {showMembers && (
         <MembersSection
           onClose={() => setShowMembers(false)}
-          canManage={!!p && p.phone.replace(/\D/g, '').slice(-10) === '9652000177'}
+          canManage={isAdmin(p)}
         />
       )}
 
       <ChatSection
         user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
         myPhone={p ? p.phone.replace(/\D/g, '').slice(-10) : ''}
-        isAdmin={!!p && p.phone.replace(/\D/g, '').slice(-10) === '9652000177'}
+        isAdmin={isAdmin(p)}
         messages={messages}
         chatText={chatText}
         chatSending={chatSending}
