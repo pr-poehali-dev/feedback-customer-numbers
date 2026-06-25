@@ -52,6 +52,7 @@ export interface ChatMessage {
   created_at: string;
   time?: string;
   author_phone?: string;
+  image_url?: string;
   reactions?: ChatReaction[];
 }
 

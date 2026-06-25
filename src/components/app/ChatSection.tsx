@@ -17,7 +17,7 @@ interface Props {
   chatText: string;
   chatSending: boolean;
   setChatText: (v: string) => void;
-  sendMessage: () => void;
+  sendMessage: (image?: { data: string; type: string }) => void;
   onDeleteMessage?: (id: number) => void;
   onReactMessage?: (id: number, emoji: string) => void;
   onRefresh?: () => void;
@@ -121,6 +121,40 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [photo, setPhoto] = useState<{ data: string; type: string; preview: string } | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Можно отправлять только изображения', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast({ title: 'Фото слишком большое', description: 'Максимум 8 МБ', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.includes(',') ? result.split(',')[1] : result;
+      setPhoto({ data: base64, type: file.type, preview: result });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSend = () => {
+    if (chatSending) return;
+    if (photo) {
+      sendMessage({ data: photo.data, type: photo.type });
+      setPhoto(null);
+    } else if (chatText.trim()) {
+      sendMessage();
+    }
+  };
 
   const handleRefresh = () => {
     if (!onRefresh || refreshing) return;
@@ -218,7 +252,16 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                     {!mine && !msg.text.startsWith('[[red]]') && (
                       <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
                     )}
-                    <p className="text-sm">{renderMessageText(msg.text)}</p>
+                    {msg.image_url && (
+                      <img
+                        src={msg.image_url}
+                        alt="Фото"
+                        loading="lazy"
+                        onClick={() => setLightbox(msg.image_url!)}
+                        className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer mb-1"
+                      />
+                    )}
+                    {msg.text && <p className="text-sm">{renderMessageText(msg.text)}</p>}
                   </div>
                   {!mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
@@ -275,18 +318,43 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
           })}
           <div ref={chatEndRef} />
         </div>
-        <div className="border-t border-border p-3 flex gap-2">
-          <input
-            value={chatText}
-            onChange={(e) => setChatText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-            placeholder="Написать сообщение..."
-            className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
-            maxLength={1000}
-          />
-          <Button onClick={sendMessage} disabled={chatSending || !chatText.trim()} className="rounded-xl px-4 shrink-0">
-            <Icon name="Send" size={16} />
-          </Button>
+        <div className="border-t border-border p-3">
+          {photo && (
+            <div className="relative inline-block mb-2">
+              <img src={photo.preview} alt="Превью" className="h-20 w-20 object-cover rounded-xl" />
+              <button
+                onClick={() => setPhoto(null)}
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center shadow"
+                title="Убрать фото"
+              >
+                <Icon name="X" size={14} />
+              </button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePickPhoto} />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={chatSending}
+              className="rounded-xl px-3 shrink-0"
+              title="Прикрепить фото"
+            >
+              <Icon name="ImagePlus" size={18} />
+            </Button>
+            <input
+              value={chatText}
+              onChange={(e) => setChatText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              placeholder={photo ? 'Добавьте подпись (необязательно)...' : 'Написать сообщение...'}
+              className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
+              maxLength={1000}
+            />
+            <Button onClick={handleSend} disabled={chatSending || (!chatText.trim() && !photo)} className="rounded-xl px-4 shrink-0">
+              <Icon name="Send" size={16} />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -353,6 +421,18 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
           <JobForm onDone={() => setJobFormOpen(false)} />
         </DialogContent>
       </Dialog>
+
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out"
+        >
+          <img src={lightbox} alt="Фото" className="max-w-full max-h-full rounded-xl object-contain" />
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center">
+            <Icon name="X" size={22} />
+          </button>
+        </div>
+      )}
     </section>
   );
 };
