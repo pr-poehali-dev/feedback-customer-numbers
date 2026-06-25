@@ -17,7 +17,7 @@ interface Props {
   chatText: string;
   chatSending: boolean;
   setChatText: (v: string) => void;
-  sendMessage: (image?: { data: string; type: string }) => void;
+  sendMessage: (images?: { data: string; type: string }[]) => void;
   onDeleteMessage?: (id: number) => void;
   onReactMessage?: (id: number, emoji: string) => void;
   onRefresh?: () => void;
@@ -121,36 +121,46 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [photo, setPhoto] = useState<{ data: string; type: string; preview: string } | null>(null);
+  const [photos, setPhotos] = useState<{ data: string; type: string; preview: string }[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_PHOTOS = 10;
 
   const handlePickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     e.target.value = '';
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast({ title: 'Можно отправлять только изображения', variant: 'destructive' });
+    if (!files.length) return;
+    const slots = MAX_PHOTOS - photos.length;
+    if (slots <= 0) {
+      toast({ title: `Можно прикрепить максимум ${MAX_PHOTOS} фото`, variant: 'destructive' });
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      toast({ title: 'Фото слишком большое', description: 'Максимум 8 МБ', variant: 'destructive' });
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.includes(',') ? result.split(',')[1] : result;
-      setPhoto({ data: base64, type: file.type, preview: result });
-    };
-    reader.readAsDataURL(file);
+    files.slice(0, slots).forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        toast({ title: 'Можно отправлять только изображения', variant: 'destructive' });
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        toast({ title: `Фото «${file.name}» слишком большое`, description: 'Максимум 8 МБ', variant: 'destructive' });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.includes(',') ? result.split(',')[1] : result;
+        setPhotos((prev) => (prev.length >= MAX_PHOTOS ? prev : [...prev, { data: base64, type: file.type, preview: result }]));
+      };
+      reader.readAsDataURL(file);
+    });
   };
+
+  const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
   const handleSend = () => {
     if (chatSending) return;
-    if (photo) {
-      sendMessage({ data: photo.data, type: photo.type });
-      setPhoto(null);
+    if (photos.length > 0) {
+      sendMessage(photos.map((p) => ({ data: p.data, type: p.type })));
+      setPhotos([]);
     } else if (chatText.trim()) {
       sendMessage();
     }
@@ -252,15 +262,26 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                     {!mine && !msg.text.startsWith('[[red]]') && (
                       <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
                     )}
-                    {msg.image_url && (
-                      <img
-                        src={msg.image_url}
-                        alt="Фото"
-                        loading="lazy"
-                        onClick={() => setLightbox(msg.image_url!)}
-                        className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer mb-1"
-                      />
-                    )}
+                    {(() => {
+                      const imgs = msg.image_urls && msg.image_urls.length > 0
+                        ? msg.image_urls
+                        : (msg.image_url ? [msg.image_url] : []);
+                      if (imgs.length === 0) return null;
+                      return (
+                        <div className={`mb-1 grid gap-1 ${imgs.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                          {imgs.map((url, i) => (
+                            <img
+                              key={i}
+                              src={url}
+                              alt="Фото"
+                              loading="lazy"
+                              onClick={() => setLightbox(url)}
+                              className={`rounded-xl object-cover cursor-pointer w-full ${imgs.length === 1 ? 'max-h-64' : 'h-28'}`}
+                            />
+                          ))}
+                        </div>
+                      );
+                    })()}
                     {msg.text && <p className="text-sm">{renderMessageText(msg.text)}</p>}
                   </div>
                   {!mine && (
@@ -319,20 +340,33 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
           <div ref={chatEndRef} />
         </div>
         <div className="border-t border-border p-3">
-          {photo && (
-            <div className="relative inline-block mb-2">
-              <img src={photo.preview} alt="Превью" className="h-20 w-20 object-cover rounded-xl" />
-              <button
-                onClick={() => setPhoto(null)}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center shadow"
-                title="Убрать фото"
-              >
-                <Icon name="X" size={14} />
-              </button>
+          {photos.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {photos.map((p, i) => (
+                <div key={i} className="relative">
+                  <img src={p.preview} alt="Превью" className="h-20 w-20 object-cover rounded-xl" />
+                  <button
+                    onClick={() => removePhoto(i)}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center shadow"
+                    title="Убрать фото"
+                  >
+                    <Icon name="X" size={14} />
+                  </button>
+                </div>
+              ))}
+              {photos.length < MAX_PHOTOS && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-20 w-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                  title="Добавить ещё"
+                >
+                  <Icon name="Plus" size={22} />
+                </button>
+              )}
             </div>
           )}
           <div className="flex gap-2">
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePickPhoto} />
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePickPhoto} />
             <Button
               type="button"
               variant="outline"
@@ -347,11 +381,11 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               value={chatText}
               onChange={(e) => setChatText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder={photo ? 'Добавьте подпись (необязательно)...' : 'Написать сообщение...'}
+              placeholder={photos.length > 0 ? 'Добавьте подпись (необязательно)...' : 'Написать сообщение...'}
               className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
               maxLength={1000}
             />
-            <Button onClick={handleSend} disabled={chatSending || (!chatText.trim() && !photo)} className="rounded-xl px-4 shrink-0">
+            <Button onClick={handleSend} disabled={chatSending || (!chatText.trim() && photos.length === 0)} className="rounded-xl px-4 shrink-0">
               <Icon name="Send" size={16} />
             </Button>
           </div>

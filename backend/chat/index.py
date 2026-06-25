@@ -164,6 +164,7 @@ def handler(event: dict, context) -> dict:
                 'time': _fmt(r[3], '%H:%M'),
                 'author_phone': _norm_phone(r[4]) if r[4] else '',
                 'image_url': r[5] or '',
+                'image_urls': [u for u in (r[5] or '').split('\n') if u],
                 'reactions': reactions.get(r[0], []),
             }
             for r in rows
@@ -213,15 +214,23 @@ def handler(event: dict, context) -> dict:
 
         # --- Новое сообщение ---
         text = (body.get('text') or '').strip()[:1000]
-        image_b64 = body.get('image') or ''
-        image_url = ''
-        if image_b64:
+        # Принимаем массив images [{data, type}] либо одиночное image/image_type
+        raw_images = body.get('images')
+        if not raw_images and body.get('image'):
+            raw_images = [{'data': body.get('image'), 'type': body.get('image_type') or ''}]
+        raw_images = (raw_images or [])[:10]
+        image_urls = []
+        for img in raw_images:
+            data = img.get('data') if isinstance(img, dict) else img
+            itype = img.get('type') if isinstance(img, dict) else ''
+            if not data:
+                continue
             try:
-                image_url = _upload_image(image_b64, body.get('image_type') or '')
+                image_urls.append(_upload_image(data, itype or ''))
             except Exception:
                 return {'statusCode': 400, 'headers': _cors(),
                         'body': json.dumps({'error': 'Не удалось загрузить фото'}, ensure_ascii=False)}
-        if not text and not image_url:
+        if not text and not image_urls:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Сообщение не может быть пустым'}, ensure_ascii=False)}
         body_name = (body.get('user_name') or '').strip()[:200]
@@ -232,6 +241,7 @@ def handler(event: dict, context) -> dict:
         text_esc = text.replace("'", "''")
         uid_val = str(user_id) if user_id else 'NULL'
         phone_val = "'%s'" % author_phone.replace("'", "''") if author_phone else 'NULL'
+        image_url = '\n'.join(image_urls)
         img_val = "'%s'" % image_url.replace("'", "''") if image_url else 'NULL'
         cur.execute(
             "INSERT INTO messages (user_id, user_name, text, author_phone, image_url) "
@@ -250,6 +260,7 @@ def handler(event: dict, context) -> dict:
                         'time': _fmt(row[1], '%H:%M'),
                         'author_phone': author_phone,
                         'image_url': image_url,
+                        'image_urls': image_urls,
                         'reactions': [],
                     }
                 }, ensure_ascii=False)}
