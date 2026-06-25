@@ -45,6 +45,10 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('fresh');
   const [open, setOpen] = useState(false);
+  const PAGE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
+
+  useEffect(() => { setVisibleCount(PAGE); }, [search, sort]);
 
   const reload = (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -154,7 +158,7 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((rec) => (
+          {filtered.slice(0, visibleCount).map((rec) => (
             <div key={rec.phone} className="glass rounded-2xl p-5">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="min-w-0">
@@ -206,6 +210,15 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
               </div>
             </div>
           ))}
+          {visibleCount < filtered.length && (
+            <button
+              onClick={() => setVisibleCount((v) => v + PAGE)}
+              className="glass rounded-xl w-full p-4 flex items-center justify-center gap-2 text-sm font-medium text-primary hover:bg-secondary/40 transition-colors"
+            >
+              <Icon name="ChevronDown" size={16} />
+              Показать ещё ({filtered.length - visibleCount})
+            </button>
+          )}
         </div>
       )}
         </>
