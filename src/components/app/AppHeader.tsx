@@ -44,10 +44,18 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
   return (
     <header className="relative z-20 sticky top-0 glass">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <a href="#check" className="flex items-center gap-2">
-          <img src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg" alt="Микс Строй" className="w-9 h-9 rounded-xl object-cover" />
-          <span className="font-display font-bold text-lg tracking-tight">Микс <span className="text-primary">Строй</span></span>
-        </a>
+        <div className="flex items-center gap-3">
+          <a href="#check" className="flex items-center gap-2">
+            <img src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg" alt="Микс Строй" className="w-9 h-9 rounded-xl object-cover" />
+            <span className="font-display font-bold text-lg tracking-tight">Микс <span className="text-primary">Строй</span></span>
+          </a>
+          {membersCount > 0 && (
+            <button onClick={() => handleNav('members')} className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">
+              <Icon name="Users" size={13} className="text-primary" />
+              {membersCount}
+            </button>
+          )}
+        </div>
 
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
