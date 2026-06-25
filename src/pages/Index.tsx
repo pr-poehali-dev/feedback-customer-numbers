@@ -312,6 +312,23 @@ const Index = () => {
         unreadChat={unreadChat}
       />
 
+      <ChatSection
+        user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
+        myPhone={p ? p.phone.replace(/\D/g, '').slice(-10) : ''}
+        isAdmin={isAdmin(p)}
+        messages={messages}
+        chatText={chatText}
+        chatSending={chatSending}
+        setChatText={setChatText}
+        sendMessage={sendMessage}
+        onDeleteMessage={(id) => requireParticipant(() => deleteMessage(id))}
+        onReactMessage={(id, emoji) => requireParticipant(() => reactMessage(id, emoji))}
+        onRefresh={loadMessages}
+        onOpenAuth={() => {}}
+        chatEndRef={chatEndRef}
+        onRequireParticipant={requireParticipant}
+      />
+
       <CheckSection
         query={query}
         setQuery={setQuery}
@@ -347,23 +364,6 @@ const Index = () => {
           canManage={isAdmin(p)}
         />
       )}
-
-      <ChatSection
-        user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
-        myPhone={p ? p.phone.replace(/\D/g, '').slice(-10) : ''}
-        isAdmin={isAdmin(p)}
-        messages={messages}
-        chatText={chatText}
-        chatSending={chatSending}
-        setChatText={setChatText}
-        sendMessage={sendMessage}
-        onDeleteMessage={(id) => requireParticipant(() => deleteMessage(id))}
-        onReactMessage={(id, emoji) => requireParticipant(() => reactMessage(id, emoji))}
-        onRefresh={loadMessages}
-        onOpenAuth={() => {}}
-        chatEndRef={chatEndRef}
-        onRequireParticipant={requireParticipant}
-      />
 
       <section id="support" className="relative z-10 container mx-auto px-4 py-16">
         <div className="glass rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto">
