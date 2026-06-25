@@ -129,8 +129,10 @@ def handler(event: dict, context) -> dict:
                 rec = _build_record(cur, pid, ph)
                 if rec:
                     records.append(rec)
+            cur.execute("SELECT COUNT(*) FROM reviews")
+            total_reviews = cur.fetchone()[0]
             return {'statusCode': 200, 'headers': _cors_headers(),
-                    'body': json.dumps({'records': records}, ensure_ascii=False)}
+                    'body': json.dumps({'records': records, 'totalReviews': total_reviews}, ensure_ascii=False)}
 
         if method == 'POST':
             body = json.loads(event.get('body') or '{}')

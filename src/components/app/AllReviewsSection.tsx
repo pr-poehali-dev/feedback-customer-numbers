@@ -40,6 +40,7 @@ const verdictWeight = (v: NumberRecord['verdict']) => (v === 'scam' ? 0 : v === 
 
 const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
   const [records, setRecords] = useState<NumberRecord[]>([]);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('fresh');
@@ -49,7 +50,10 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
     if (showLoader) setLoading(true);
     fetch(API)
       .then((r) => r.json())
-      .then((data) => setRecords(data.records || []))
+      .then((data) => {
+        setRecords(data.records || []);
+        if (typeof data.totalReviews === 'number') setTotalCount(data.totalReviews);
+      })
       .catch(() => { if (showLoader) setRecords([]); })
       .finally(() => setLoading(false));
   };
@@ -84,7 +88,7 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
       if (sort === 'scam') return verdictWeight(a.verdict) - verdictWeight(b.verdict);
       return b.rating - a.rating;
     });
-  const totalReviews = records.reduce((sum, r) => sum + (r.reviewList?.length || 0), 0);
+  const totalReviews = totalCount ?? records.reduce((sum, r) => sum + (r.reviewList?.length || 0), 0);
 
   useEffect(() => {
     if (!loading) onCount?.(totalReviews);
