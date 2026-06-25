@@ -10,6 +10,7 @@ import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
 import MembersSection from '@/components/app/MembersSection';
 import MyReviewsSection from '@/components/app/MyReviewsSection';
+import AllReviewsSection from '@/components/app/AllReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
 
@@ -328,6 +329,8 @@ const Index = () => {
         onCloseHint={closeHint}
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
+
+      <AllReviewsSection refreshKey={reviewsRefresh} />
 
       {p && (
         <MyReviewsSection
