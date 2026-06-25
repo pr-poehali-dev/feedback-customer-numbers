@@ -20,6 +20,7 @@ const renderStars = (rating: number) => (
 
 interface Props {
   refreshKey: number;
+  onCount?: (count: number) => void;
 }
 
 type SortKey = 'fresh' | 'scam' | 'best';
@@ -37,7 +38,7 @@ const lastReviewTime = (r: NumberRecord) => {
 
 const verdictWeight = (v: NumberRecord['verdict']) => (v === 'scam' ? 0 : v === 'risky' ? 1 : 2);
 
-const AllReviewsSection = ({ refreshKey }: Props) => {
+const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
   const [records, setRecords] = useState<NumberRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -71,6 +72,10 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
       return b.rating - a.rating;
     });
   const totalReviews = records.reduce((sum, r) => sum + (r.reviewList?.length || 0), 0);
+
+  useEffect(() => {
+    if (!loading) onCount?.(totalReviews);
+  }, [loading, totalReviews, onCount]);
 
   return (
     <section id="all-reviews" className="relative z-10 container mx-auto px-4 py-12 max-w-2xl">

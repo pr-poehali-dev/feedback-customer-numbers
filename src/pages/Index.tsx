@@ -41,6 +41,7 @@ const Index = () => {
   const [showMembers, setShowMembers] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
+  const [reviewsCount, setReviewsCount] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
   const lastFetchedIdRef = useRef(0);
@@ -310,6 +311,7 @@ const Index = () => {
         isLoggedIn={!!p}
         participantName={p?.full_name}
         unreadChat={unreadChat}
+        reviewsCount={reviewsCount}
       />
 
       <ChatSection
@@ -347,7 +349,7 @@ const Index = () => {
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
 
-      <AllReviewsSection refreshKey={reviewsRefresh} />
+      <AllReviewsSection refreshKey={reviewsRefresh} onCount={setReviewsCount} />
 
       {p && (
         <MyReviewsSection
