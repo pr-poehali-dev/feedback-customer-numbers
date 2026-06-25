@@ -123,14 +123,59 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 200, 'headers': _cors_headers(),
                         'body': json.dumps({'found': True, 'record': rec}, ensure_ascii=False)}
 
-            cur.execute("SELECT id, phone FROM phone_numbers ORDER BY id DESC LIMIT 20")
+            cur.execute("SELECT id, phone FROM phone_numbers ORDER BY id DESC")
+            phone_rows = cur.fetchall()
+            order = [pid for pid, _ in phone_rows]
+            phone_by_id = {pid: ph for pid, ph in phone_rows}
+
+            cur.execute(
+                "SELECT phone_id, rating, verdict, author, comment, tags, created_at, "
+                "customer_name, object_address, id, author_phone "
+                "FROM reviews ORDER BY created_at DESC"
+            )
+            grouped = {}
+            total_reviews = 0
+            for r in cur.fetchall():
+                grouped.setdefault(r[0], []).append(r)
+                total_reviews += 1
+
             records = []
-            for pid, ph in cur.fetchall():
-                rec = _build_record(cur, pid, ph)
-                if rec:
-                    records.append(rec)
-            cur.execute("SELECT COUNT(*) FROM reviews")
-            total_reviews = cur.fetchone()[0]
+            for pid in order:
+                rows = grouped.get(pid)
+                if not rows:
+                    continue
+                ratings = [x[1] for x in rows]
+                avg = round(sum(ratings) / len(ratings), 1)
+                tag_list = []
+                for x in rows:
+                    if x[5]:
+                        for t in x[5].split(','):
+                            t = t.strip()
+                            if t and t not in tag_list:
+                                tag_list.append(t)
+                records.append({
+                    'phone': phone_by_id[pid],
+                    'rating': avg,
+                    'reviews': len(rows),
+                    'verdict': _verdict_from_rating(avg),
+                    'tags': tag_list[:4],
+                    'lastReview': rows[0][4],
+                    'reviewList': [
+                        {
+                            'rating': x[1],
+                            'verdict': x[2],
+                            'author': x[3] or 'Аноним',
+                            'comment': x[4],
+                            'tags': [t.strip() for t in (x[5] or '').split(',') if t.strip()],
+                            'createdAt': x[6].isoformat() if x[6] else None,
+                            'customerName': x[7] or '',
+                            'objectAddress': x[8] or '',
+                            'id': x[9],
+                            'authorPhone': x[10] or '',
+                        }
+                        for x in rows
+                    ],
+                })
             return {'statusCode': 200, 'headers': _cors_headers(),
                     'body': json.dumps({'records': records, 'totalReviews': total_reviews}, ensure_ascii=False)}
 
