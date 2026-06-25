@@ -203,13 +203,23 @@ def handler(event: dict, context) -> dict:
             )
             phone_id = cur.fetchone()[0]
 
+            ap_esc = author_phone.replace("'", "''")
+            if author_phone:
+                cur.execute(
+                    "SELECT 1 FROM reviews WHERE phone_id = %s AND author_phone = '%s' LIMIT 1" % (
+                        phone_id, ap_esc)
+                )
+                if cur.fetchone():
+                    return {'statusCode': 409, 'headers': _cors_headers(),
+                            'body': json.dumps({'error': 'Вы уже оставили отзыв на этот номер'},
+                                               ensure_ascii=False)}
+
             c_esc = comment.replace("'", "''")
             a_esc = author.replace("'", "''")
             cn_esc = customer_name.replace("'", "''")
             oa_esc = object_address.replace("'", "''")
             t_esc = tags.replace("'", "''")
             v_esc = verdict.replace("'", "''")
-            ap_esc = author_phone.replace("'", "''")
             cur.execute(
                 "INSERT INTO reviews (phone_id, rating, verdict, author, customer_name, object_address, comment, tags, author_phone) "
                 "VALUES (%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (

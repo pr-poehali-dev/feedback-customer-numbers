@@ -15,12 +15,30 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Добавление отзыва",
+      "name": "Добавление отзыва без участника",
       "method": "POST",
       "path": "/",
-      "body": {"phone": "+7 (900) 000-00-01", "rating": 4, "comment": "Тестовый отзыв", "author": "Тест", "tags": "Платит вовремя", "author_phone": "+7 (900) 000-00-99"},
+      "body": {"phone": "+7 (900) 000-00-01", "rating": 4, "comment": "Тестовый отзыв", "author": "Тест", "tags": "Платит вовремя"},
       "expectedStatus": 200,
       "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Отзыв от участника",
+      "method": "POST",
+      "path": "/",
+      "body": {"phone": "+7 (900) 000-00-02", "rating": 5, "comment": "Первый", "author_phone": "+7 (900) 000-00-99"},
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Повторный отзыв на тот же номер запрещён",
+      "method": "POST",
+      "path": "/",
+      "body": {"phone": "+7 (900) 000-00-02", "rating": 4, "comment": "Повтор", "author_phone": "+7 (900) 000-00-99"},
+      "expectedStatus": 409,
+      "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
     },
     {
