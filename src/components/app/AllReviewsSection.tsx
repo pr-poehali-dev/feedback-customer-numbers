@@ -42,6 +42,7 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('fresh');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -51,6 +52,15 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
       .catch(() => setRecords([]))
       .finally(() => setLoading(false));
   }, [refreshKey]);
+
+  useEffect(() => {
+    const handler = () => {
+      setOpen(true);
+      setTimeout(() => document.getElementById('all-reviews')?.scrollIntoView({ behavior: 'smooth' }), 50);
+    };
+    window.addEventListener('open-all-reviews', handler);
+    return () => window.removeEventListener('open-all-reviews', handler);
+  }, []);
 
   const filtered = records
     .filter((r) => r.phone.replace(/\D/g, '').includes(search.replace(/\D/g, '')))
@@ -64,14 +74,30 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
 
   return (
     <section id="all-reviews" className="relative z-10 container mx-auto px-4 py-12 max-w-2xl">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon name="MessagesSquare" size={22} className="text-primary" />
-        <h2 className="text-2xl font-display font-bold tracking-tight">Оставленные отзывы</h2>
-      </div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 mb-2 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Icon name="MessagesSquare" size={22} className="text-primary" />
+          <h2 className="text-2xl font-display font-bold tracking-tight">Оставленные отзывы</h2>
+        </div>
+        <Icon name={open ? 'ChevronUp' : 'ChevronDown'} size={22} className="text-muted-foreground shrink-0" />
+      </button>
       <p className="text-sm text-muted-foreground mb-5">
         Все отзывы о заказчиках, которые оставили участники {!loading && `· ${totalReviews}`}
       </p>
 
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="glass rounded-xl w-full p-4 flex items-center justify-center gap-2 text-sm font-medium text-primary hover:bg-secondary/40 transition-colors"
+        >
+          <Icon name="Eye" size={16} />
+          Показать все отзывы
+        </button>
+      ) : (
+        <>
       <div className="glass rounded-xl p-2 flex items-center gap-2 mb-5">
         <Icon name="Search" size={18} className="text-muted-foreground ml-2" />
         <Input
@@ -159,6 +185,8 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
     </section>
   );

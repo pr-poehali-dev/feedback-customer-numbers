@@ -22,6 +22,8 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
     setMenuOpen(false);
     if (id === 'members') {
       onOpenMembers?.();
+    } else if (id === 'all-reviews') {
+      window.dispatchEvent(new Event('open-all-reviews'));
     } else {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     }
