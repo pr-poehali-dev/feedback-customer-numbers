@@ -22,10 +22,26 @@ interface Props {
   refreshKey: number;
 }
 
+type SortKey = 'fresh' | 'scam' | 'best';
+
+const SORT_OPTIONS: { key: SortKey; label: string; icon: string }[] = [
+  { key: 'fresh', label: 'Сначала свежие', icon: 'Clock' },
+  { key: 'scam', label: 'Сначала мошенники', icon: 'ShieldX' },
+  { key: 'best', label: 'По рейтингу', icon: 'Star' },
+];
+
+const lastReviewTime = (r: NumberRecord) => {
+  const dates = (r.reviewList || []).map((rv) => (rv.createdAt ? new Date(rv.createdAt).getTime() : 0));
+  return dates.length ? Math.max(...dates) : 0;
+};
+
+const verdictWeight = (v: NumberRecord['verdict']) => (v === 'scam' ? 0 : v === 'risky' ? 1 : 2);
+
 const AllReviewsSection = ({ refreshKey }: Props) => {
   const [records, setRecords] = useState<NumberRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<SortKey>('fresh');
 
   useEffect(() => {
     setLoading(true);
@@ -36,7 +52,14 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
       .finally(() => setLoading(false));
   }, [refreshKey]);
 
-  const filtered = records.filter((r) => r.phone.replace(/\D/g, '').includes(search.replace(/\D/g, '')));
+  const filtered = records
+    .filter((r) => r.phone.replace(/\D/g, '').includes(search.replace(/\D/g, '')))
+    .slice()
+    .sort((a, b) => {
+      if (sort === 'fresh') return lastReviewTime(b) - lastReviewTime(a);
+      if (sort === 'scam') return verdictWeight(a.verdict) - verdictWeight(b.verdict);
+      return b.rating - a.rating;
+    });
   const totalReviews = records.reduce((sum, r) => sum + (r.reviewList?.length || 0), 0);
 
   return (
@@ -57,6 +80,21 @@ const AllReviewsSection = ({ refreshKey }: Props) => {
           placeholder="Поиск по номеру заказчика..."
           className="border-0 bg-transparent font-mono focus-visible:ring-0"
         />
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-5">
+        {SORT_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => setSort(opt.key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              sort === opt.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon name={opt.icon} size={13} />
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {loading ? (
