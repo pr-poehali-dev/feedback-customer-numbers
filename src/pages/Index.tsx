@@ -42,6 +42,7 @@ const Index = () => {
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
   const [reviewsCount, setReviewsCount] = useState(0);
+  const [membersCount, setMembersCount] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
   const lastFetchedIdRef = useRef(0);
@@ -52,6 +53,13 @@ const Index = () => {
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  useEffect(() => {
+    fetch('https://functions.poehali.dev/185a902f-2976-42bb-b791-ee85aa91f561')
+      .then((r) => r.json())
+      .then((data) => setMembersCount((data.members || []).length))
+      .catch(() => {});
+  }, [showMembers]);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
@@ -312,6 +320,7 @@ const Index = () => {
         participantName={p?.full_name}
         unreadChat={unreadChat}
         reviewsCount={reviewsCount}
+        membersCount={membersCount}
       />
 
       <ChatSection
