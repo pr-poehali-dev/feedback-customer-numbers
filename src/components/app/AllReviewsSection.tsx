@@ -45,14 +45,27 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
   const [sort, setSort] = useState<SortKey>('fresh');
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
+  const reload = (showLoader = false) => {
+    if (showLoader) setLoading(true);
     fetch(API)
       .then((r) => r.json())
       .then((data) => setRecords(data.records || []))
-      .catch(() => setRecords([]))
+      .catch(() => { if (showLoader) setRecords([]); })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    reload(true);
   }, [refreshKey]);
+
+  useEffect(() => {
+    // Тихое автообновление: раз в 2 минуты и при возврате на вкладку
+    const tick = () => { if (!document.hidden) reload(false); };
+    const interval = setInterval(tick, 120000);
+    const onVisible = () => { if (!document.hidden) reload(false); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
+  }, []);
 
   useEffect(() => {
     const handler = () => {
