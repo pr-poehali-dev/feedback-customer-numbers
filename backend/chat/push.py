@@ -12,26 +12,21 @@ def _b64u_decode(data: str) -> bytes:
     return base64.b64decode(data)
 
 
-def _private_key_pem() -> str:
-    """Конвертирует raw base64url приватный VAPID-ключ (32 байта) в PEM.
+def _build_vapid():
+    """Создаёт объект Vapid из raw base64url приватного ключа (32 байта).
 
-    Браузеры/py-vapid новой версии ожидают приватный ключ в формате PEM,
-    а в секрете он хранится как «сырой» base64url. Конвертируем на лету.
+    Передаём pywebpush готовый объект, чтобы он не пытался повторно
+    разбирать ключ из строки (что вызывало ошибку deserialize).
     """
-    raw = os.environ.get('VAPID_PRIVATE_KEY', '')
-    if 'BEGIN' in raw:
-        return raw
-    from cryptography.hazmat.primitives import serialization
+    from py_vapid import Vapid01
     from cryptography.hazmat.primitives.asymmetric import ec
 
+    raw = os.environ.get('VAPID_PRIVATE_KEY', '')
     priv_int = int.from_bytes(_b64u_decode(raw), 'big')
     key = ec.derive_private_key(priv_int, ec.SECP256R1())
-    pem = key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    return pem.decode('utf-8')
+    v = Vapid01()
+    v.private_key = key
+    return v
 
 
 def _vapid_claims(endpoint: str):
@@ -55,7 +50,7 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
         return
 
     try:
-        private_key = _private_key_pem()
+        vapid = _build_vapid()
     except Exception as exc:
         print('PUSH: bad private key %s' % str(exc)[:200])
         return
@@ -82,7 +77,7 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
             resp = webpush(
                 subscription_info=subscription,
                 data=payload,
-                vapid_private_key=private_key,
+                vapid_private_key=vapid,
                 vapid_claims=_vapid_claims(endpoint),
                 timeout=10,
                 content_encoding='aes128gcm',
@@ -98,7 +93,9 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
                 resp_text = ''
             print('PUSH FAIL id=%s status=%s host=%s err=%s body=%s' % (
                 sub_id, status, endpoint[:40], str(exc)[:200], resp_text))
-            if status in (404, 410):
+            # 404/410 — подписки больше нет; 400/403 — несовпадение VAPID-ключа
+            # (подписка под старый ключ): тоже удаляем, чтобы устройство переподписалось
+            if status in (404, 410, 400, 403):
                 dead_ids.append(sub_id)
         except Exception as exc:
             print('PUSH ERROR id=%s host=%s err=%s' % (sub_id, endpoint[:40], str(exc)[:200]))
