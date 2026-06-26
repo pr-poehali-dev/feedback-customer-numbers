@@ -296,6 +296,18 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                                 >
                                   <Icon name="MessageCircle" size={14} className="text-green-600" />WhatsApp
                                 </a>
+                                <button
+                                  onClick={() => {
+                                    const num = `+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`;
+                                    navigator.clipboard?.writeText(num).catch(() => {});
+                                    toast({ title: 'Номер скопирован', description: 'Вставьте его в поиск MAX' });
+                                    window.open('https://max.ru', '_blank', 'noopener,noreferrer');
+                                    setContactFor(null);
+                                  }}
+                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border text-left"
+                                >
+                                  <Icon name="Send" size={14} className="text-blue-500" />MAX
+                                </button>
                               </div>
                             )}
                           </div>
