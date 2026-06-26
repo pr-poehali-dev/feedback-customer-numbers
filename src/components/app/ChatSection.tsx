@@ -139,6 +139,9 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const audioChunksRef = useRef<Blob[]>([]);
   const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordCancelledRef = useRef(false);
+  const holdStartXRef = useRef(0);
+  const [slideOffset, setSlideOffset] = useState(0);
+  const CANCEL_THRESHOLD = 90;
 
   const blobToBase64 = (blob: Blob): Promise<string> =>
     new Promise((resolve) => {
@@ -209,13 +212,27 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const handleHoldStart = (e: React.PointerEvent) => {
     e.preventDefault();
     try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* ignore */ }
+    holdStartXRef.current = e.clientX;
+    setSlideOffset(0);
     if (onRequireParticipant) onRequireParticipant(startRecording);
     else startRecording();
   };
 
+  const handleHoldMove = (e: React.PointerEvent) => {
+    if (!recording) return;
+    const dx = e.clientX - holdStartXRef.current;
+    setSlideOffset(dx < 0 ? Math.max(dx, -150) : 0);
+  };
+
   const handleHoldEnd = (e: React.PointerEvent) => {
     e.preventDefault();
-    if (recording) stopRecording();
+    if (!recording) return;
+    if (-slideOffset >= CANCEL_THRESHOLD) {
+      cancelRecording();
+    } else {
+      stopRecording();
+    }
+    setSlideOffset(0);
   };
 
   const handlePickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -528,19 +545,27 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               >
                 <Icon name="Trash2" size={18} />
               </Button>
-              <div className="flex-1 flex items-center gap-2 bg-secondary rounded-xl px-4 py-2 text-sm">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="font-mono">{fmtSecs(recordSecs)}</span>
-                <span className="text-muted-foreground hidden sm:inline">Отпустите, чтобы отправить</span>
+              <div className="flex-1 flex items-center gap-2 bg-secondary rounded-xl px-4 py-2 text-sm overflow-hidden">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+                <span className="font-mono shrink-0">{fmtSecs(recordSecs)}</span>
+                {-slideOffset >= CANCEL_THRESHOLD ? (
+                  <span className="text-destructive font-medium">Отпустите для отмены</span>
+                ) : (
+                  <span className="text-muted-foreground flex items-center gap-1 transition-opacity" style={{ opacity: 1 - (-slideOffset / CANCEL_THRESHOLD) }}>
+                    <Icon name="ChevronLeft" size={14} /> Влево — отмена
+                  </span>
+                )}
               </div>
               <Button
                 type="button"
+                onPointerMove={handleHoldMove}
                 onPointerUp={handleHoldEnd}
-                onPointerLeave={handleHoldEnd}
-                className="rounded-xl px-4 shrink-0 select-none touch-none bg-red-500 hover:bg-red-500 text-white scale-110"
+                onPointerCancel={handleHoldEnd}
+                className={`rounded-xl px-4 shrink-0 select-none touch-none text-white scale-110 transition-transform ${-slideOffset >= CANCEL_THRESHOLD ? 'bg-destructive hover:bg-destructive' : 'bg-red-500 hover:bg-red-500'}`}
+                style={{ transform: `translateX(${Math.max(slideOffset, -60)}px) scale(1.1)` }}
                 title="Отпустите, чтобы отправить"
               >
-                <Icon name="Mic" size={18} />
+                <Icon name={-slideOffset >= CANCEL_THRESHOLD ? 'Trash2' : 'Mic'} size={18} />
               </Button>
             </div>
           ) : (
