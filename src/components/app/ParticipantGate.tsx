@@ -24,8 +24,6 @@ interface Props {
 // Форма регистрации участника
 const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
   const [fullName, setFullName] = useState('');
-  const [organization, setOrganization] = useState('');
-  const [workDirection, setWorkDirection] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,12 +37,12 @@ const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
       const res = await fetch(PARTICIPANTS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: fullName, organization, work_direction: workDirection, phone }),
+        body: JSON.stringify({ full_name: fullName, organization: '', work_direction: '', phone }),
       });
       const data = await res.json();
       if (data.success) {
         localStorage.setItem(STORAGE_KEY, phone.trim());
-        onDone({ id: data.id, full_name: fullName, organization, work_direction: workDirection, phone });
+        onDone({ id: data.id, full_name: fullName, organization: '', work_direction: '', phone });
         toast({ title: 'Добро пожаловать!', description: fullName });
       } else {
         toast({ title: data.error || 'Ошибка', variant: 'destructive' });
@@ -60,8 +58,6 @@ const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
   return (
     <div className="space-y-3">
       <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="ФИО *" />
-      <Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Название организации" />
-      <Input value={workDirection} onChange={(e) => setWorkDirection(e.target.value)} placeholder="Направление работы" />
       <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер телефона *" className="font-mono"
         onKeyDown={(e) => e.key === 'Enter' && submit()} />
       <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
