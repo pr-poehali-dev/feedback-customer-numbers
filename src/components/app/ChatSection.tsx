@@ -100,6 +100,12 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
+const formatPhone = (raw?: string) => {
+  const d = (raw || '').replace(/\D/g, '').slice(-10);
+  if (d.length !== 10) return raw || '';
+  return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8, 10)}`;
+};
+
 const renderMessageText = (text: string) => {
   if (text.startsWith('[[red]]')) {
     const rest = text.slice('[[red]]'.length);
@@ -259,8 +265,13 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                     </div>
                   )}
                   <div className={`rounded-2xl px-4 py-2 ${mine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
-                    {!mine && !msg.text.startsWith('[[red]]') && (
-                      <p className="text-xs font-semibold text-primary mb-1">{msg.user_name}</p>
+                    {!msg.text.startsWith('[[red]]') && (
+                      <div className="mb-1">
+                        <p className={`text-xs font-semibold ${mine ? 'text-primary-foreground' : 'text-primary'}`}>{msg.user_name}</p>
+                        {msg.author_phone && (
+                          <p className={`text-[11px] font-mono ${mine ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{formatPhone(msg.author_phone)}</p>
+                        )}
+                      </div>
                     )}
                     {(() => {
                       const imgs = msg.image_urls && msg.image_urls.length > 0
