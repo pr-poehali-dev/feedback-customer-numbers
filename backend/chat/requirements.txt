@@ -1,3 +1,5 @@
 psycopg2-binary
 boto3
 pywebpush
+cryptography==42.0.8
+http-ece==1.1.0

@@ -1,7 +1,7 @@
 import { CHAT_API } from '@/components/app/types';
 
 const VAPID_PUBLIC_KEY =
-  'BK-eNkiU2TDhhfOi8P4floOZ4e4nR2QMGzn_FZwGt0F1PTAk7hs7-ZHa2P6TmluQxXKjYKYpQZpK1lOwK8BJ_38';
+  'BCoKB6DnoSR9ooTdB6-e0WLwQaue8gOgSbbf7wuOCdlWY-gmkph8OCxYQX-biPIjSlOSa0sVV4IFx9lG8x744MM';
 
 const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
