@@ -206,6 +206,18 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
 
   const fmtSecs = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
+  const handleHoldStart = (e: React.PointerEvent) => {
+    e.preventDefault();
+    try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* ignore */ }
+    if (onRequireParticipant) onRequireParticipant(startRecording);
+    else startRecording();
+  };
+
+  const handleHoldEnd = (e: React.PointerEvent) => {
+    e.preventDefault();
+    if (recording) stopRecording();
+  };
+
   const handlePickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
@@ -519,10 +531,16 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               <div className="flex-1 flex items-center gap-2 bg-secondary rounded-xl px-4 py-2 text-sm">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                 <span className="font-mono">{fmtSecs(recordSecs)}</span>
-                <span className="text-muted-foreground">Идёт запись...</span>
+                <span className="text-muted-foreground hidden sm:inline">Отпустите, чтобы отправить</span>
               </div>
-              <Button onClick={stopRecording} className="rounded-xl px-4 shrink-0" title="Отправить голосовое">
-                <Icon name="Send" size={16} />
+              <Button
+                type="button"
+                onPointerUp={handleHoldEnd}
+                onPointerLeave={handleHoldEnd}
+                className="rounded-xl px-4 shrink-0 select-none touch-none bg-red-500 hover:bg-red-500 text-white scale-110"
+                title="Отпустите, чтобы отправить"
+              >
+                <Icon name="Mic" size={18} />
               </Button>
             </div>
           ) : (
@@ -553,10 +571,10 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
             ) : (
               <Button
                 type="button"
-                onClick={() => onRequireParticipant ? onRequireParticipant(startRecording) : startRecording()}
+                onPointerDown={handleHoldStart}
                 disabled={chatSending}
-                className="rounded-xl px-4 shrink-0"
-                title="Записать голосовое"
+                className="rounded-xl px-4 shrink-0 select-none touch-none"
+                title="Зажмите, чтобы записать голосовое"
               >
                 <Icon name="Mic" size={18} />
               </Button>
