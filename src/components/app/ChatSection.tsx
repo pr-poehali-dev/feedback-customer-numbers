@@ -354,13 +354,24 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
       {/* Чат */}
       <div className="glass rounded-2xl overflow-hidden flex flex-col w-full lg:flex-1 h-[70vh] min-h-[400px] lg:h-[600px]">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.length === 0 && (
+          {!user && (
+            <div className="flex flex-col items-center justify-center h-full text-center px-6">
+              <Icon name="Lock" size={44} className="mb-4 text-primary opacity-70" />
+              <p className="font-display font-bold text-lg mb-1">Чат доступен участникам</p>
+              <p className="text-sm text-muted-foreground mb-5 max-w-xs">Войдите, чтобы читать сообщения и общаться с коллегами.</p>
+              <Button onClick={() => requireAuth(() => {})} className="rounded-xl font-semibold px-6">
+                <Icon name="LogIn" size={16} />
+                Войти в систему
+              </Button>
+            </div>
+          )}
+          {user && messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
               <Icon name="MessageCircle" size={40} className="mb-3 opacity-30" />
               <p className="text-sm">Пока нет сообщений. Начните общение!</p>
             </div>
           )}
-          {messages.map((msg) => {
+          {user && messages.map((msg) => {
             const mine = !!myName && msg.user_name === myName;
             const canDelete = isAdmin || mine || (!!myPhone && msg.author_phone === myPhone);
             return (
