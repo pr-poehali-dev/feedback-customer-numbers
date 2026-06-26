@@ -39,6 +39,40 @@ const saveSubscription = async (sub: PushSubscription): Promise<void> => {
   });
 };
 
+const keyMatchesCurrent = (sub: PushSubscription): boolean => {
+  try {
+    const opt = sub.options?.applicationServerKey;
+    if (!opt) return false;
+    const current = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+    const existing = new Uint8Array(opt as ArrayBuffer);
+    if (existing.length !== current.length) return false;
+    for (let i = 0; i < current.length; i++) {
+      if (existing[i] !== current[i]) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getFreshSubscription = async (
+  registration: ServiceWorkerRegistration,
+): Promise<PushSubscription> => {
+  let sub = await registration.pushManager.getSubscription();
+  if (sub && !keyMatchesCurrent(sub)) {
+    // Подписка сделана под старый VAPID-ключ — удаляем и создаём заново
+    try { await sub.unsubscribe(); } catch { /* игнор */ }
+    sub = null;
+  }
+  if (!sub) {
+    sub = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+  }
+  return sub;
+};
+
 export const enablePushNotifications = async (): Promise<boolean> => {
   if (!isPushSupported()) return false;
   try {
@@ -48,13 +82,7 @@ export const enablePushNotifications = async (): Promise<boolean> => {
     const registration = await registerServiceWorker();
     await navigator.serviceWorker.ready;
 
-    let sub = await registration.pushManager.getSubscription();
-    if (!sub) {
-      sub = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-    }
+    const sub = await getFreshSubscription(registration);
     await saveSubscription(sub);
     return true;
   } catch {
@@ -68,13 +96,7 @@ export const ensurePushSubscribed = async (): Promise<void> => {
   try {
     const registration = await registerServiceWorker();
     await navigator.serviceWorker.ready;
-    let sub = await registration.pushManager.getSubscription();
-    if (!sub) {
-      sub = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-    }
+    const sub = await getFreshSubscription(registration);
     await saveSubscription(sub);
   } catch {
     /* тихо */
