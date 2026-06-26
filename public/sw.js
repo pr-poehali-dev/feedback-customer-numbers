@@ -19,8 +19,9 @@ self.addEventListener('push', (event) => {
     body: data.body || '',
     icon: 'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4f60f5bc-a46a-4c70-9dbb-6513705f811b.png',
     badge: 'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4f60f5bc-a46a-4c70-9dbb-6513705f811b.png',
-    tag: 'chat-message',
-    renotify: true,
+    // Уникальный tag на каждое сообщение — iOS считает их отдельными
+    // уведомлениями и показывает их количество бейджем на иконке
+    tag: 'chat-' + (typeof data.badge_count === 'number' ? data.badge_count : Date.now()),
     data: { url: data.url || '/#chat' },
   };
 
