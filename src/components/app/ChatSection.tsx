@@ -128,6 +128,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [photos, setPhotos] = useState<{ data: string; type: string; preview: string }[]>([]);
+  const [contactFor, setContactFor] = useState<number | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_PHOTOS = 10;
@@ -269,7 +270,35 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                       <div className="mb-1">
                         <p className={`text-xs font-semibold ${mine ? 'text-primary-foreground' : 'text-primary'}`}>{msg.user_name}</p>
                         {msg.author_phone && (
-                          <p className={`text-[11px] font-mono ${mine ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{formatPhone(msg.author_phone)}</p>
+                          <div className="relative">
+                            <button
+                              onClick={() => setContactFor(contactFor === msg.id ? null : msg.id)}
+                              className={`text-[11px] font-mono flex items-center gap-1 hover:underline ${mine ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}
+                            >
+                              <Icon name="Phone" size={11} />
+                              {formatPhone(msg.author_phone)}
+                            </button>
+                            {contactFor === msg.id && (
+                              <div className="absolute z-20 mt-1 flex flex-col rounded-xl glass border border-border shadow-lg overflow-hidden min-w-[160px]">
+                                <a
+                                  href={`tel:+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`}
+                                  onClick={() => setContactFor(null)}
+                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors"
+                                >
+                                  <Icon name="Phone" size={14} className="text-primary" />Позвонить
+                                </a>
+                                <a
+                                  href={`https://wa.me/7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => setContactFor(null)}
+                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border"
+                                >
+                                  <Icon name="MessageCircle" size={14} className="text-green-600" />WhatsApp
+                                </a>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
