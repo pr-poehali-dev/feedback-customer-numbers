@@ -347,7 +347,8 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
             const mine = !!myName && msg.user_name === myName;
             const canDelete = isAdmin || mine || (!!myPhone && msg.author_phone === myPhone);
             return (
-            <div key={msg.id} className={`group flex gap-3 ${mine ? 'flex-row-reverse' : ''}`}>
+            <div key={msg.id}>
+            <div className={`group flex gap-3 ${mine ? 'flex-row-reverse' : ''}`}>
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
                 {(msg.user_name || '?').charAt(0).toUpperCase()}
               </div>
@@ -503,6 +504,8 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
 
                 <p className="text-[11px] text-muted-foreground mt-1 px-1">{msg.time || msg.created_at}</p>
               </div>
+            </div>
+            <div className="h-1 rounded-full bg-red-600 w-full my-2" />
             </div>
             );
           })}
