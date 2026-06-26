@@ -13,7 +13,7 @@ import MyReviewsSection from '@/components/app/MyReviewsSection';
 import AllReviewsSection from '@/components/app/AllReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
-import { playDropSound } from '@/lib/dropSound';
+import { playDropSound, playNotifySound } from '@/lib/dropSound';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -100,7 +100,18 @@ const Index = () => {
       const fresh: ChatMessage[] = data.messages || [];
 
       // Счётчик непрочитанных: считаем сообщения новее последнего просмотренного, пока чат не на экране
+      const prevMaxId = lastFetchedIdRef.current || 0;
       const maxId = fresh.length ? Math.max(...fresh.map((m) => m.id)) : 0;
+
+      // Звук уведомления: пришли новые чужие сообщения (не первая загрузка)
+      if (prevMaxId > 0 && maxId > prevMaxId) {
+        const myPhoneDigits = (participant?.phone || '').replace(/\D/g, '').slice(-10);
+        const hasOthers = fresh.some(
+          (m) => m.id > prevMaxId && (m.author_phone || '').replace(/\D/g, '').slice(-10) !== myPhoneDigits,
+        );
+        if (hasOthers) playNotifySound();
+      }
+
       lastFetchedIdRef.current = maxId;
       if (chatVisibleRef.current) {
         lastSeenIdRef.current = maxId;

@@ -34,3 +34,30 @@ export const playDropSound = () => {
     /* без звука, если браузер не поддерживает */
   }
 };
+
+export const playNotifySound = () => {
+  try {
+    const audio = getCtx();
+    if (!audio) return;
+    if (audio.state === 'suspended') audio.resume();
+
+    const now = audio.currentTime;
+    const notes = [660, 990];
+    notes.forEach((freq, i) => {
+      const start = now + i * 0.13;
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.2, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.18);
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.start(start);
+      osc.stop(start + 0.2);
+    });
+  } catch {
+    /* без звука, если браузер не поддерживает */
+  }
+};
