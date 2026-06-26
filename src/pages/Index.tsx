@@ -13,6 +13,7 @@ import MyReviewsSection from '@/components/app/MyReviewsSection';
 import AllReviewsSection from '@/components/app/AllReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
+import { playDropSound } from '@/lib/dropSound';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -154,6 +155,7 @@ const Index = () => {
         });
         const data = await res.json();
         if (data.message) {
+          playDropSound();
           lastFetchedIdRef.current = Math.max(lastFetchedIdRef.current, data.message.id);
           lastSeenIdRef.current = Math.max(lastSeenIdRef.current, data.message.id);
           setMessages((prev) => [...prev, data.message]);
