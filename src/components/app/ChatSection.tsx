@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { User, ChatMessage } from './types';
+import PushBanner from './PushBanner';
 
 const JOBS_API = 'https://functions.poehali.dev/9db3fbb7-d09a-451b-9b2c-f75933050bb9';
 
@@ -307,6 +308,8 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
           </button>
         )}
       </div>
+
+      <PushBanner />
 
       <div className="flex justify-center mb-6">
         <Button onClick={openJobForm} className="rounded-xl font-semibold px-8 py-3 text-base">
