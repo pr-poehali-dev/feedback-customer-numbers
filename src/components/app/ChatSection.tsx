@@ -373,7 +373,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                 <div className="flex items-end gap-1.5">
                   {mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                      {onReactMessage && (
+                      {user && onReactMessage && (
                         <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1.5" title="Реакция">
                           <Icon name="SmilePlus" size={16} />
                         </button>
@@ -473,7 +473,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                   </div>
                   {!mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                      {onReactMessage && (
+                      {user && onReactMessage && (
                         <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1.5" title="Реакция">
                           <Icon name="SmilePlus" size={16} />
                         </button>
@@ -507,7 +507,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                       return (
                         <button
                           key={r.emoji}
-                          onClick={() => onReactMessage && onReactMessage(msg.id, r.emoji)}
+                          onClick={() => requireAuth(() => onReactMessage && onReactMessage(msg.id, r.emoji))}
                           className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border transition-colors ${reacted ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-secondary border-transparent hover:border-border'}`}
                         >
                           <span className="text-sm leading-none">{r.emoji}</span>
