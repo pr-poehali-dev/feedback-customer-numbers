@@ -505,7 +505,7 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                 <p className="text-[11px] text-muted-foreground mt-1 px-1">{msg.time || msg.created_at}</p>
               </div>
             </div>
-            <div className="h-1 rounded-full bg-red-600 w-full my-2" />
+            <div className="h-0.5 rounded-full bg-red-600/80 w-1/2 mx-auto my-2.5" />
             </div>
             );
           })}
