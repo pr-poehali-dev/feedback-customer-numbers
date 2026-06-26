@@ -54,6 +54,7 @@ export interface ChatMessage {
   author_phone?: string;
   image_url?: string;
   image_urls?: string[];
+  audio_url?: string;
   reactions?: ChatReaction[];
 }
 

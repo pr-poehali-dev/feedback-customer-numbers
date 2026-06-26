@@ -137,9 +137,9 @@ const Index = () => {
     } catch { /* тихо */ }
   };
 
-  const sendMessage = async (images?: { data: string; type: string }[]) => {
+  const sendMessage = async (images?: { data: string; type: string }[], audio?: { data: string; type: string }) => {
     const hasImages = !!images && images.length > 0;
-    if (!chatText.trim() && !hasImages) return;
+    if (!chatText.trim() && !hasImages && !audio) return;
     setChatSending(true);
     const textToSend = chatText.trim();
     setChatText('');
@@ -150,7 +150,7 @@ const Index = () => {
         const res = await fetch(CHAT_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: textToSend, user_name: participant?.full_name, phone: participant?.phone, images }),
+          body: JSON.stringify({ text: textToSend, user_name: participant?.full_name, phone: participant?.phone, images, audio: audio?.data, audio_type: audio?.type }),
         });
         const data = await res.json();
         if (data.message) {

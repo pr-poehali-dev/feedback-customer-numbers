@@ -17,7 +17,7 @@ interface Props {
   chatText: string;
   chatSending: boolean;
   setChatText: (v: string) => void;
-  sendMessage: (images?: { data: string; type: string }[]) => void;
+  sendMessage: (images?: { data: string; type: string }[], audio?: { data: string; type: string }) => void;
   onDeleteMessage?: (id: number) => void;
   onReactMessage?: (id: number, emoji: string) => void;
   onRefresh?: () => void;
@@ -132,6 +132,79 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const [lightbox, setLightbox] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_PHOTOS = 10;
+
+  const [recording, setRecording] = useState(false);
+  const [recordSecs, setRecordSecs] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordCancelledRef = useRef(false);
+
+  const blobToBase64 = (blob: Blob): Promise<string> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        resolve(result.includes(',') ? result.split(',')[1] : result);
+      };
+      reader.readAsDataURL(blob);
+    });
+
+  const stopTimer = () => {
+    if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+  };
+
+  const startRecording = async () => {
+    if (recording) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      toast({ title: 'Запись не поддерживается', description: 'Откройте сайт в современном браузере', variant: 'destructive' });
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      audioChunksRef.current = [];
+      recordCancelledRef.current = false;
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        stopTimer();
+        setRecording(false);
+        if (recordCancelledRef.current) return;
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        if (blob.size < 1000) return;
+        const data = await blobToBase64(blob);
+        sendMessage(undefined, { data, type: recorder.mimeType || 'audio/webm' });
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecording(true);
+      setRecordSecs(0);
+      recordTimerRef.current = setInterval(() => {
+        setRecordSecs((s) => {
+          if (s >= 120) { stopRecording(); return s; }
+          return s + 1;
+        });
+      }, 1000);
+    } catch {
+      toast({ title: 'Нет доступа к микрофону', description: 'Разрешите доступ в настройках браузера', variant: 'destructive' });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const cancelRecording = () => {
+    recordCancelledRef.current = true;
+    stopRecording();
+  };
+
+  const fmtSecs = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
   const handlePickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -343,6 +416,12 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                         </div>
                       );
                     })()}
+                    {msg.audio_url && (
+                      <div className="flex items-center gap-2 mb-1 min-w-[200px]">
+                        <Icon name="Mic" size={16} className={mine ? 'text-primary-foreground' : 'text-primary'} />
+                        <audio src={msg.audio_url} controls preload="none" className="h-9 max-w-[220px]" />
+                      </div>
+                    )}
                     {msg.text && <p className="text-sm">{renderMessageText(msg.text)}</p>}
                   </div>
                   {!mine && (
@@ -426,6 +505,27 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               )}
             </div>
           )}
+          {recording ? (
+            <div className="flex gap-2 items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={cancelRecording}
+                className="rounded-xl px-3 shrink-0 text-destructive"
+                title="Отменить запись"
+              >
+                <Icon name="Trash2" size={18} />
+              </Button>
+              <div className="flex-1 flex items-center gap-2 bg-secondary rounded-xl px-4 py-2 text-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="font-mono">{fmtSecs(recordSecs)}</span>
+                <span className="text-muted-foreground">Идёт запись...</span>
+              </div>
+              <Button onClick={stopRecording} className="rounded-xl px-4 shrink-0" title="Отправить голосовое">
+                <Icon name="Send" size={16} />
+              </Button>
+            </div>
+          ) : (
           <div className="flex gap-2">
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePickPhoto} />
             <Button
@@ -446,10 +546,23 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               className="flex-1 bg-secondary rounded-xl px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
               maxLength={1000}
             />
-            <Button onClick={handleSend} disabled={chatSending || (!chatText.trim() && photos.length === 0)} className="rounded-xl px-4 shrink-0">
-              <Icon name="Send" size={16} />
-            </Button>
+            {chatText.trim() || photos.length > 0 ? (
+              <Button onClick={handleSend} disabled={chatSending} className="rounded-xl px-4 shrink-0">
+                <Icon name="Send" size={16} />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => onRequireParticipant ? onRequireParticipant(startRecording) : startRecording()}
+                disabled={chatSending}
+                className="rounded-xl px-4 shrink-0"
+                title="Записать голосовое"
+              >
+                <Icon name="Mic" size={18} />
+              </Button>
+            )}
           </div>
+          )}
         </div>
       </div>
 

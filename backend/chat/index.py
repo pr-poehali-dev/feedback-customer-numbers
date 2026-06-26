@@ -30,13 +30,20 @@ def _db():
 
 
 def _ensure_image_column(cur, conn):
-    """Гарантирует наличие колонки image_url в messages."""
+    """Гарантирует наличие колонок image_url и audio_url в messages."""
     cur.execute(
         "SELECT 1 FROM information_schema.columns "
         "WHERE table_name='messages' AND column_name='image_url'"
     )
     if not cur.fetchone():
         cur.execute("ALTER TABLE messages ADD COLUMN image_url TEXT")
+        conn.commit()
+    cur.execute(
+        "SELECT 1 FROM information_schema.columns "
+        "WHERE table_name='messages' AND column_name='audio_url'"
+    )
+    if not cur.fetchone():
+        cur.execute("ALTER TABLE messages ADD COLUMN audio_url TEXT")
         conn.commit()
 
 
@@ -70,6 +77,32 @@ def _upload_image(image_b64: str, content_type: str) -> str:
     ext = _EXT_BY_TYPE.get(content_type, 'jpg')
     data = base64.b64decode(image_b64)
     key = 'chat/%s.%s' % (uuid.uuid4().hex, ext)
+    s3 = boto3.client(
+        's3',
+        endpoint_url='https://bucket.poehali.dev',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    )
+    s3.put_object(Bucket='files', Key=key, Body=data, ContentType=content_type)
+    return 'https://cdn.poehali.dev/projects/%s/bucket/%s' % (os.environ['AWS_ACCESS_KEY_ID'], key)
+
+
+_AUDIO_EXT_BY_TYPE = {
+    'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mpeg': 'mp3',
+    'audio/mp4': 'm4a', 'audio/wav': 'wav', 'audio/x-m4a': 'm4a',
+}
+
+
+def _upload_audio(audio_b64: str, content_type: str) -> str:
+    """Загружает base64-аудио в S3, возвращает CDN-ссылку."""
+    if ',' in audio_b64 and audio_b64.strip().startswith('data:'):
+        header, audio_b64 = audio_b64.split(',', 1)
+        if not content_type and ':' in header and ';' in header:
+            content_type = header.split(':', 1)[1].split(';', 1)[0]
+    content_type = (content_type or 'audio/webm').split(';')[0]
+    ext = _AUDIO_EXT_BY_TYPE.get(content_type, 'webm')
+    data = base64.b64decode(audio_b64)
+    key = 'chat/voice/%s.%s' % (uuid.uuid4().hex, ext)
     s3 = boto3.client(
         's3',
         endpoint_url='https://bucket.poehali.dev',
@@ -149,7 +182,7 @@ def handler(event: dict, context) -> dict:
                         }, ensure_ascii=False)}
 
         cur.execute(
-            "SELECT id, user_name, text, created_at, author_phone, image_url FROM messages "
+            "SELECT id, user_name, text, created_at, author_phone, image_url, audio_url FROM messages "
             "ORDER BY created_at DESC LIMIT 50"
         )
         rows = list(reversed(cur.fetchall()))
@@ -165,6 +198,7 @@ def handler(event: dict, context) -> dict:
                 'author_phone': _norm_phone(r[4]) if r[4] else '',
                 'image_url': r[5] or '',
                 'image_urls': [u for u in (r[5] or '').split('\n') if u],
+                'audio_url': r[6] or '',
                 'reactions': reactions.get(r[0], []),
             }
             for r in rows
@@ -230,7 +264,16 @@ def handler(event: dict, context) -> dict:
             except Exception:
                 return {'statusCode': 400, 'headers': _cors(),
                         'body': json.dumps({'error': 'Не удалось загрузить фото'}, ensure_ascii=False)}
-        if not text and not image_urls:
+        # Голосовое сообщение
+        audio_url = ''
+        raw_audio = body.get('audio')
+        if raw_audio:
+            try:
+                audio_url = _upload_audio(raw_audio, body.get('audio_type') or '')
+            except Exception:
+                return {'statusCode': 400, 'headers': _cors(),
+                        'body': json.dumps({'error': 'Не удалось загрузить голосовое'}, ensure_ascii=False)}
+        if not text and not image_urls and not audio_url:
             return {'statusCode': 400, 'headers': _cors(),
                     'body': json.dumps({'error': 'Сообщение не может быть пустым'}, ensure_ascii=False)}
         body_name = (body.get('user_name') or '').strip()[:200]
@@ -243,10 +286,11 @@ def handler(event: dict, context) -> dict:
         phone_val = "'%s'" % author_phone.replace("'", "''") if author_phone else 'NULL'
         image_url = '\n'.join(image_urls)
         img_val = "'%s'" % image_url.replace("'", "''") if image_url else 'NULL'
+        audio_val = "'%s'" % audio_url.replace("'", "''") if audio_url else 'NULL'
         cur.execute(
-            "INSERT INTO messages (user_id, user_name, text, author_phone, image_url) "
-            "VALUES (%s, '%s', '%s', %s, %s) RETURNING id, created_at"
-            % (uid_val, name_esc, text_esc, phone_val, img_val)
+            "INSERT INTO messages (user_id, user_name, text, author_phone, image_url, audio_url) "
+            "VALUES (%s, '%s', '%s', %s, %s, %s) RETURNING id, created_at"
+            % (uid_val, name_esc, text_esc, phone_val, img_val, audio_val)
         )
         row = cur.fetchone()
         conn.commit()
@@ -261,6 +305,7 @@ def handler(event: dict, context) -> dict:
                         'author_phone': author_phone,
                         'image_url': image_url,
                         'image_urls': image_urls,
+                        'audio_url': audio_url,
                         'reactions': [],
                     }
                 }, ensure_ascii=False)}
