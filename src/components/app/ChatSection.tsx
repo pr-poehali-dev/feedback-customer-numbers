@@ -296,6 +296,15 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                                 >
                                   <Icon name="MessageCircle" size={14} className="text-green-600" />WhatsApp
                                 </a>
+                                <a
+                                  href={`https://t.me/+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => setContactFor(null)}
+                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border"
+                                >
+                                  <Icon name="Send" size={14} className="text-sky-500" />Telegram
+                                </a>
                                 <button
                                   onClick={() => {
                                     const num = `+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`;
