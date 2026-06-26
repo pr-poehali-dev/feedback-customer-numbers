@@ -3,6 +3,8 @@ import os
 import re
 import psycopg2
 
+ADMIN_PHONES = {'9652000177', '9774951403'}
+
 
 def _cors_headers():
     return {
@@ -181,6 +183,25 @@ def handler(event: dict, context) -> dict:
 
         if method == 'POST':
             body = json.loads(event.get('body') or '{}')
+
+            if body.get('action') == 'delete_test':
+                admin_phone = (body.get('author_phone') or '').strip()
+                admin_digits = re.sub(r'\D', '', admin_phone)[-10:]
+                if admin_digits not in ADMIN_PHONES:
+                    return {'statusCode': 403, 'headers': _cors_headers(),
+                            'body': json.dumps({'error': 'Нет прав'}, ensure_ascii=False)}
+                cur.execute(
+                    "DELETE FROM reviews WHERE author = 'Тест' AND comment = 'Тестовый отзыв'"
+                )
+                deleted = cur.rowcount
+                cur.execute(
+                    "DELETE FROM phone_numbers p WHERE NOT EXISTS "
+                    "(SELECT 1 FROM reviews r WHERE r.phone_id = p.id)"
+                )
+                conn.commit()
+                return {'statusCode': 200, 'headers': _cors_headers(),
+                        'body': json.dumps({'success': True, 'deleted': deleted}, ensure_ascii=False)}
+
             phone = (body.get('phone') or '').strip()
             comment = (body.get('comment') or '').strip()
             rating = int(body.get('rating', 0))

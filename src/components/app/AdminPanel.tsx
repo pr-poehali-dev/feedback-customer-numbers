@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { AUTH_API, User, getToken } from './types';
+import { API, AUTH_API, User, getToken } from './types';
 
 interface PendingUser {
   id: number;
@@ -55,11 +55,49 @@ const AdminPanel = ({ user }: Props) => {
     }
   };
 
+  const deleteTestReviews = async () => {
+    if (!window.confirm('Удалить все тестовые отзывы (автор «Тест»)?')) return;
+    setLoading(true);
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_test',
+          author_phone: localStorage.getItem('ms_participant_phone') || '',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: `Удалено тестовых отзывов: ${data.deleted}` });
+      } else {
+        toast({ title: data.error || 'Ошибка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Не удалось удалить', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user || user.id !== OWNER_ID) return null;
-  if (pending.length === 0) return null;
 
   return (
-    <section className="relative z-10 container mx-auto px-4 py-8">
+    <section className="relative z-10 container mx-auto px-4 py-8 space-y-4">
+      <div className="border border-destructive/40 rounded-2xl p-6 bg-destructive/5 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Icon name="Trash2" size={22} className="text-destructive" />
+          <div>
+            <h2 className="text-lg font-display font-bold">Тестовые отзывы</h2>
+            <p className="text-xs text-muted-foreground">Удалить демо-записи с автором «Тест»</p>
+          </div>
+        </div>
+        <Button onClick={deleteTestReviews} disabled={loading} variant="outline" className="rounded-lg border-destructive text-destructive hover:bg-destructive hover:text-white">
+          <Icon name="Trash2" size={16} />Удалить тестовые
+        </Button>
+      </div>
+
+      {pending.length > 0 && (
       <div className="border border-primary/40 rounded-2xl p-6 bg-primary/5">
         <div className="flex items-center gap-3 mb-5">
           <Icon name="ShieldCheck" size={22} className="text-primary" />
@@ -93,6 +131,7 @@ const AdminPanel = ({ user }: Props) => {
           ))}
         </div>
       </div>
+      )}
     </section>
   );
 };
