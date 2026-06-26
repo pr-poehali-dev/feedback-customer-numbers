@@ -15,6 +15,7 @@ import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
 import { playDropSound, playNotifySound } from '@/lib/dropSound';
 import { ensurePushSubscribed } from '@/lib/push';
+import { setAppBadge } from '@/lib/appBadge';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -60,6 +61,11 @@ const Index = () => {
     // Если разрешение уже выдано — обновляем подписку на push (после очистки кэша SW)
     ensurePushSubscribed();
   }, []);
+
+  useEffect(() => {
+    // Бейдж с числом непрочитанных на иконке установленного приложения
+    setAppBadge(unreadChat);
+  }, [unreadChat]);
 
   useEffect(() => {
     fetch('https://functions.poehali.dev/185a902f-2976-42bb-b791-ee85aa91f561')

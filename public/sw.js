@@ -24,11 +24,21 @@ self.addEventListener('push', (event) => {
     data: { url: data.url || '/#chat' },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  const tasks = [self.registration.showNotification(title, options)];
+
+  // Бейдж на иконке приложения при получении push в фоне
+  if (self.navigator && self.navigator.setAppBadge) {
+    tasks.push(self.navigator.setAppBadge().catch(() => {}));
+  }
+
+  event.waitUntil(Promise.all(tasks));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  if (self.navigator && self.navigator.clearAppBadge) {
+    self.navigator.clearAppBadge().catch(() => {});
+  }
   const targetUrl = (event.notification.data && event.notification.data.url) || '/#chat';
 
   event.waitUntil(
