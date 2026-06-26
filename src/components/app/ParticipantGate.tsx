@@ -21,6 +21,22 @@ interface Props {
   children: React.ReactNode;
 }
 
+// Форматирует ввод в вид +7 (___) ___-__-__
+const formatPhone = (value: string): string => {
+  let digits = value.replace(/\D/g, '');
+  if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+  if (!digits.startsWith('7')) digits = '7' + digits;
+  digits = digits.slice(0, 11);
+  const d = digits.slice(1); // 10 цифр после 7
+  let out = '+7';
+  if (d.length > 0) out += ' (' + d.slice(0, 3);
+  if (d.length >= 3) out += ')';
+  if (d.length > 3) out += ' ' + d.slice(3, 6);
+  if (d.length > 6) out += '-' + d.slice(6, 8);
+  if (d.length > 8) out += '-' + d.slice(8, 10);
+  return out;
+};
+
 // Форма регистрации участника
 const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
   const [fullName, setFullName] = useState('');
@@ -28,8 +44,13 @@ const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
+    const phoneDigits = phone.replace(/\D/g, '');
     if (!fullName.trim() || !phone.trim()) {
       toast({ title: 'Заполните ФИО и номер телефона', variant: 'destructive' });
+      return;
+    }
+    if (phoneDigits.length !== 11) {
+      toast({ title: 'Введите номер телефона полностью', variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -58,8 +79,8 @@ const RegisterForm = ({ onDone }: { onDone: (p: Participant) => void }) => {
   return (
     <div className="space-y-3">
       <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="ФИО *" />
-      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер телефона *" className="font-mono"
-        onKeyDown={(e) => e.key === 'Enter' && submit()} />
+      <Input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} placeholder="+7 (___) ___-__-__" className="font-mono"
+        inputMode="tel" onKeyDown={(e) => e.key === 'Enter' && submit()} />
       <Button onClick={submit} disabled={loading} className="w-full rounded-xl font-semibold">
         {loading ? 'Сохранение...' : 'Войти в систему'}
       </Button>
