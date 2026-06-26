@@ -12,9 +12,25 @@ interface Props {
   onDone: () => void;
 }
 
+// Форматирует ввод в вид +7 (___) ___-__-__
+const formatPhone = (value: string): string => {
+  let digits = value.replace(/\D/g, '');
+  if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+  if (!digits.startsWith('7')) digits = '7' + digits;
+  digits = digits.slice(0, 11);
+  const d = digits.slice(1);
+  let out = '+7';
+  if (d.length > 0) out += ' (' + d.slice(0, 3);
+  if (d.length >= 3) out += ')';
+  if (d.length > 3) out += ' ' + d.slice(3, 6);
+  if (d.length > 6) out += '-' + d.slice(6, 8);
+  if (d.length > 8) out += '-' + d.slice(8, 10);
+  return out;
+};
+
 const ReviewForm = ({ defaultPhone, editReview, onDone }: Props) => {
   const isEdit = !!editReview;
-  const [phone, setPhone] = useState(defaultPhone || '');
+  const [phone, setPhone] = useState(defaultPhone ? formatPhone(defaultPhone) : '');
   const [rating, setRating] = useState(editReview?.rating || 5);
   const [author, setAuthor] = useState(editReview?.author && editReview.author !== 'Аноним' ? editReview.author : '');
   const [customerName, setCustomerName] = useState(editReview?.customerName || '');
@@ -26,6 +42,10 @@ const ReviewForm = ({ defaultPhone, editReview, onDone }: Props) => {
   const submit = async () => {
     if (!isEdit && !phone.trim()) {
       toast({ title: 'Заполните номер', variant: 'destructive' });
+      return;
+    }
+    if (!isEdit && phone.replace(/\D/g, '').length !== 11) {
+      toast({ title: 'Введите номер телефона полностью', variant: 'destructive' });
       return;
     }
     if (!comment.trim()) {
@@ -61,7 +81,7 @@ const ReviewForm = ({ defaultPhone, editReview, onDone }: Props) => {
   return (
     <div className="space-y-4">
       {!isEdit && (
-        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Номер телефона" className="font-mono" />
+        <Input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} placeholder="+7 (___) ___-__-__" className="font-mono" inputMode="tel" />
       )}
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Оценка:</span>
