@@ -6,6 +6,8 @@ from datetime import timedelta
 import psycopg2
 import boto3
 
+from push import send_push_to_all
+
 ADMIN_PHONES = {'9652000177', '9774951403'}
 TZ_OFFSET = timedelta(hours=3)  # Москва (UTC+3)
 
@@ -217,6 +219,30 @@ def handler(event: dict, context) -> dict:
 
         action = body.get('action')
 
+        # --- Подписка на push-уведомления ---
+        if action == 'subscribe':
+            sub = body.get('subscription') or {}
+            endpoint = (sub.get('endpoint') or '').strip()
+            keys = sub.get('keys') or {}
+            p256dh = (keys.get('p256dh') or '').strip()
+            auth = (keys.get('auth') or '').strip()
+            if not endpoint or not p256dh or not auth:
+                return {'statusCode': 400, 'headers': _cors(),
+                        'body': json.dumps({'error': 'Некорректная подписка'}, ensure_ascii=False)}
+            ua = (headers.get('User-Agent') or headers.get('user-agent') or '')[:300]
+            ep_esc = endpoint.replace("'", "''")
+            p_esc = p256dh.replace("'", "''")
+            a_esc = auth.replace("'", "''")
+            ua_esc = ua.replace("'", "''")
+            cur.execute("DELETE FROM push_subscriptions WHERE endpoint='%s'" % ep_esc)
+            cur.execute(
+                "INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_agent) "
+                "VALUES ('%s', '%s', '%s', '%s')" % (ep_esc, p_esc, a_esc, ua_esc)
+            )
+            conn.commit()
+            return {'statusCode': 200, 'headers': _cors(),
+                    'body': json.dumps({'success': True}, ensure_ascii=False)}
+
         # --- Реакция ---
         if action == 'react':
             msg_id = body.get('message_id')
@@ -294,6 +320,26 @@ def handler(event: dict, context) -> dict:
         )
         row = cur.fetchone()
         conn.commit()
+
+        # Рассылаем push всем подписанным участникам
+        try:
+            if text:
+                preview = text[:120]
+            elif audio_url:
+                preview = '🎤 Голосовое сообщение'
+            elif image_urls:
+                preview = '📷 Фото'
+            else:
+                preview = 'Новое сообщение'
+            send_push_to_all(
+                cur, conn,
+                title=(user_name or 'Гость'),
+                body_text=preview,
+                exclude_phone=author_phone,
+            )
+        except Exception:
+            pass
+
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({
                     'message': {

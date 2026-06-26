@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { navItems } from './types';
+import { isPushSupported, getPushPermission, enablePushNotifications } from '@/lib/push';
 
 interface Props {
   onOpenForm: () => void;
@@ -19,6 +20,31 @@ interface Props {
 
 const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin, isLoggedIn, participantName, unreadChat = 0, reviewsCount = 0, membersCount = 0 }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pushState, setPushState] = useState<NotificationPermission | 'unsupported'>('default');
+
+  useEffect(() => {
+    setPushState(getPushPermission());
+  }, []);
+
+  const handleEnablePush = async () => {
+    if (!isPushSupported()) {
+      toast({ title: 'Уведомления не поддерживаются', description: 'Откройте сайт в Chrome или установите приложение.', variant: 'destructive' });
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      toast({ title: 'Уведомления заблокированы', description: 'Разрешите их в настройках браузера для этого сайта.', variant: 'destructive' });
+      return;
+    }
+    const ok = await enablePushNotifications();
+    setPushState(getPushPermission());
+    if (ok) {
+      toast({ title: 'Уведомления включены', description: 'Будем присылать новые сообщения чата.' });
+    } else {
+      toast({ title: 'Не удалось включить уведомления', variant: 'destructive' });
+    }
+  };
+
+  const pushEnabled = pushState === 'granted';
 
   const handleNav = (id: string) => {
     setMenuOpen(false);
@@ -90,6 +116,18 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
             <Icon name="Share2" size={15} />
             <span className="hidden sm:inline">Поделиться</span>
           </Button>
+          {pushState !== 'unsupported' && (
+            <Button
+              size="sm"
+              variant={pushEnabled ? 'ghost' : 'outline'}
+              className="rounded-lg font-medium"
+              onClick={handleEnablePush}
+              title={pushEnabled ? 'Уведомления включены' : 'Включить уведомления о новых сообщениях'}
+            >
+              <Icon name={pushEnabled ? 'BellRing' : 'BellOff'} size={15} className={pushEnabled ? 'text-primary' : ''} />
+              <span className="hidden lg:inline">{pushEnabled ? 'Уведомления вкл' : 'Уведомления'}</span>
+            </Button>
+          )}
           {isLoggedIn ? (
             onLogout && (
               <Button size="sm" variant="ghost" className="rounded-lg font-medium" onClick={onLogout} title={participantName}>
@@ -143,6 +181,12 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
               )}
             </button>
           ))}
+          {pushState !== 'unsupported' && (
+            <button onClick={() => { setMenuOpen(false); handleEnablePush(); }} className="px-3 py-3 rounded-lg text-sm text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-3 border-t border-border mt-1 pt-3">
+              <Icon name={pushEnabled ? 'BellRing' : 'BellOff'} size={18} className="text-primary" />
+              {pushEnabled ? 'Уведомления включены' : 'Включить уведомления'}
+            </button>
+          )}
           {onOpenInstall && (
             <button onClick={() => { setMenuOpen(false); onOpenInstall(); }} className="px-3 py-3 rounded-lg text-sm text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-3 border-t border-border mt-1 pt-3">
               <Icon name="Smartphone" size={18} className="text-primary" />

@@ -32,6 +32,13 @@
       "path": "/",
       "body": {"message_id": 1},
       "expectedStatus": 400
+    },
+    {
+      "name": "Подписка на push без данных отклоняется",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "subscribe", "subscription": {}},
+      "expectedStatus": 400
     }
   ]
 }

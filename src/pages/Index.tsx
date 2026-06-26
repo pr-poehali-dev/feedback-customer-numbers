@@ -14,6 +14,7 @@ import AllReviewsSection from '@/components/app/AllReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
 import { playDropSound, playNotifySound } from '@/lib/dropSound';
+import { ensurePushSubscribed } from '@/lib/push';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -53,6 +54,11 @@ const Index = () => {
     const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  useEffect(() => {
+    // Если разрешение уже выдано — обновляем подписку на push (после очистки кэша SW)
+    ensurePushSubscribed();
   }, []);
 
   useEffect(() => {
