@@ -17,8 +17,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Новое сообщение в чате';
   const options = {
     body: data.body || '',
-    icon: 'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg',
-    badge: 'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg',
+    icon: 'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4f60f5bc-a46a-4c70-9dbb-6513705f811b.png',
+    badge: 'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4f60f5bc-a46a-4c70-9dbb-6513705f811b.png',
     tag: 'chat-message',
     renotify: true,
     data: { url: data.url || '/#chat' },

@@ -72,7 +72,7 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <div className="flex items-center gap-3">
           <a href="#check" className="flex items-center gap-2">
-            <img src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/6ed778f2-1ce5-40cd-a17c-c3ce71ce45ad.jpeg" alt="Микс Строй" className="w-9 h-9 rounded-xl object-cover" />
+            <img src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4f60f5bc-a46a-4c70-9dbb-6513705f811b.png" alt="Микс Строй" className="w-9 h-9 rounded-xl object-cover" />
             <span className="font-display font-bold text-lg tracking-tight">Микс <span className="text-primary">Строй</span></span>
           </a>
           {membersCount > 0 && (
