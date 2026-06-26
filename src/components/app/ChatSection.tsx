@@ -333,22 +333,14 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
 
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start max-w-6xl mx-auto">
 
-      {/* Фото бригад — слева от чата */}
-      <div className="w-full lg:w-56 shrink-0 order-first grid grid-cols-2 lg:grid-cols-1 gap-3">
-        {[
-          'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/5e781115-819e-4970-a0cf-f9d1eef3e8c7.jpeg',
-          'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/b7aa7285-32b6-484a-a849-3047080697d2.jpeg',
-          'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/b85988a5-3f3a-4c71-9db2-802df5e1275d.jpeg',
-          'https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4441c37a-7d1e-4bcd-b59f-3eab2acbb360.jpeg',
-        ].map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt={`Бригада ${i + 1}`}
-            loading="lazy"
-            className="w-full h-28 lg:h-32 object-cover rounded-xl"
-          />
-        ))}
+      {/* Логотип — слева от чата */}
+      <div className="w-full lg:w-56 shrink-0 order-first flex justify-center">
+        <img
+          src="https://cdn.poehali.dev/projects/13876108-688c-474f-aed7-7b67d3d10ce5/bucket/4f60f5bc-a46a-4c70-9dbb-6513705f811b.png"
+          alt="Микс Строй"
+          loading="lazy"
+          className="w-40 h-40 lg:w-full lg:h-auto object-contain"
+        />
       </div>
 
       {/* Чат */}
