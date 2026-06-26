@@ -27,7 +27,11 @@ export const getPushPermission = (): NotificationPermission | 'unsupported' => {
 
 const registerServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
   const existing = await navigator.serviceWorker.getRegistration('/sw.js');
-  if (existing) return existing;
+  if (existing) {
+    // Проверяем обновление service worker, чтобы доехал свежий код (бейдж и т.п.)
+    existing.update().catch(() => {});
+    return existing;
+  }
   return navigator.serviceWorker.register('/sw.js');
 };
 
