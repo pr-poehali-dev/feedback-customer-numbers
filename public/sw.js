@@ -26,9 +26,10 @@ self.addEventListener('push', (event) => {
 
   const tasks = [self.registration.showNotification(title, options)];
 
-  // Бейдж на иконке приложения при получении push в фоне
+  // Бейдж на иконке приложения при получении push в фоне (важно для iPhone)
   if (self.navigator && self.navigator.setAppBadge) {
-    tasks.push(self.navigator.setAppBadge().catch(() => {}));
+    const count = typeof data.badge_count === 'number' ? data.badge_count : 1;
+    tasks.push(self.navigator.setAppBadge(count).catch(() => {}));
   }
 
   event.waitUntil(Promise.all(tasks));

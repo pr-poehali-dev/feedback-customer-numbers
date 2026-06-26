@@ -59,10 +59,18 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
     if not subs:
         return
 
+    # Число для бейджа на иконке iPhone — сколько сообщений сейчас в чате
+    try:
+        cur.execute("SELECT COUNT(*) FROM messages")
+        badge = int(cur.fetchone()[0] or 0)
+    except Exception:
+        badge = 1
+
     payload = json.dumps({
         'title': title,
         'body': body_text,
         'url': '/#chat',
+        'badge_count': badge,
     }, ensure_ascii=False)
 
     dead_ids = []
