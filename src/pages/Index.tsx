@@ -237,18 +237,17 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Экономим вычислительное время: когда чат виден — опрос раз в минуту,
-    // когда чат не на экране — раз в 5 минут (нужен только для значка непрочитанных).
-    // Скрытая вкладка не опрашивается вообще.
+    // Пока вкладка активна — опрашиваем часто (раз в 20 сек), чтобы звук о новом
+    // сообщении приходил быстро, как в Telegram. Скрытая вкладка не опрашивается.
     let lastFetch = 0;
     const tick = () => {
       if (document.hidden) return;
-      const period = chatVisibleRef.current ? 120000 : 300000;
+      const period = 20000;
       if (Date.now() - lastFetch < period) return;
       lastFetch = Date.now();
       loadMessages();
     };
-    const interval = setInterval(tick, 30000);
+    const interval = setInterval(tick, 10000);
 
     const chatEl = document.getElementById('chat');
     const observer = new IntersectionObserver(
