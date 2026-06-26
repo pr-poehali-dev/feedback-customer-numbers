@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { API, NumberRecord, verdictMeta } from './types';
+import MaskedPhone from './MaskedPhone';
 
 const formatDate = (iso: string | null) => {
   if (!iso) return '';
@@ -162,7 +163,7 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
             <div key={rec.phone} className="glass rounded-2xl p-5">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-lg font-bold truncate">{rec.phone}</p>
+                  <MaskedPhone phone={rec.phone} className="font-mono text-lg font-bold" />
                   <div className="flex items-center gap-2 mt-1">
                     {renderStars(rec.rating)}
                     <span className="text-xs text-muted-foreground">{rec.rating} · {rec.reviews} отзывов</span>

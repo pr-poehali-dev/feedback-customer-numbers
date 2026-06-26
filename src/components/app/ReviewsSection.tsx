@@ -1,6 +1,7 @@
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { NumberRecord, verdictMeta } from './types';
+import MaskedPhone from './MaskedPhone';
 
 interface Props {
   feed: NumberRecord[];
@@ -31,7 +32,7 @@ const ReviewsSection = ({ feed, onOpenForm }: Props) => (
         {feed.map((r) => (
           <div key={r.phone} className="glass rounded-2xl p-5 hover:border-primary/40 transition-colors">
             <div className="flex items-center justify-between mb-3">
-              <span className="font-mono font-semibold">{r.phone}</span>
+              <MaskedPhone phone={r.phone} className="font-mono font-semibold" />
               <div className={`flex items-center gap-1 text-xs ${verdictMeta[r.verdict].color}`}>
                 <Icon name={verdictMeta[r.verdict].icon} size={14} />
                 {verdictMeta[r.verdict].label}
