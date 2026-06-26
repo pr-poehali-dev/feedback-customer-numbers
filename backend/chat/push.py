@@ -46,7 +46,6 @@ def _vapid_claims(endpoint: str):
 def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str = ''):
     """Шлёт push всем сохранённым подпискам. Битые подписки удаляет."""
     if not os.environ.get('VAPID_PRIVATE_KEY'):
-        print('PUSH: no VAPID_PRIVATE_KEY')
         return
 
     try:
@@ -58,7 +57,6 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
     cur.execute("SELECT id, endpoint, p256dh, auth FROM push_subscriptions")
     subs = cur.fetchall()
     if not subs:
-        print('PUSH: no subscriptions')
         return
 
     payload = json.dumps({
@@ -82,23 +80,17 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
                 timeout=10,
                 content_encoding='aes128gcm',
             )
-            print('PUSH OK id=%s status=%s host=%s' % (
-                sub_id, getattr(resp, 'status_code', '?'), endpoint[:40]))
+            _ = resp
         except WebPushException as exc:
             status = getattr(getattr(exc, 'response', None), 'status_code', None)
-            resp_text = ''
-            try:
-                resp_text = exc.response.text[:200] if exc.response is not None else ''
-            except Exception:
-                resp_text = ''
-            print('PUSH FAIL id=%s status=%s host=%s err=%s body=%s' % (
-                sub_id, status, endpoint[:40], str(exc)[:200], resp_text))
             # 404/410 — подписки больше нет; 400/403 — несовпадение VAPID-ключа
             # (подписка под старый ключ): тоже удаляем, чтобы устройство переподписалось
             if status in (404, 410, 400, 403):
                 dead_ids.append(sub_id)
+            else:
+                print('PUSH FAIL id=%s status=%s' % (sub_id, status))
         except Exception as exc:
-            print('PUSH ERROR id=%s host=%s err=%s' % (sub_id, endpoint[:40], str(exc)[:200]))
+            print('PUSH ERROR id=%s err=%s' % (sub_id, str(exc)[:150]))
 
     if dead_ids:
         ids_str = ','.join(str(int(i)) for i in dead_ids)
