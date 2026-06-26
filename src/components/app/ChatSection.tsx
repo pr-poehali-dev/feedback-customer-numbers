@@ -268,12 +268,26 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
 
   const handleSend = () => {
     if (chatSending) return;
+    if (!user) {
+      if (onRequireParticipant) onRequireParticipant(() => {});
+      else toast({ title: 'Войдите, чтобы писать в чат', variant: 'destructive' });
+      return;
+    }
     if (photos.length > 0) {
       sendMessage(photos.map((p) => ({ data: p.data, type: p.type })));
       setPhotos([]);
     } else if (chatText.trim()) {
       sendMessage();
     }
+  };
+
+  const requireAuth = (action: () => void) => {
+    if (!user) {
+      if (onRequireParticipant) onRequireParticipant(() => {});
+      else toast({ title: 'Войдите, чтобы писать в чат', variant: 'destructive' });
+      return;
+    }
+    action();
   };
 
   const handleRefresh = () => {
@@ -540,7 +554,15 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
               )}
             </div>
           )}
-          {recording ? (
+          {!user ? (
+            <button
+              onClick={() => requireAuth(() => {})}
+              className="w-full rounded-xl bg-secondary hover:bg-secondary/80 transition-colors px-4 py-3 text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"
+            >
+              <Icon name="Lock" size={16} />
+              Войдите, чтобы писать в чат
+            </button>
+          ) : recording ? (
             <div className="flex gap-2 items-center">
               <Button
                 type="button"
