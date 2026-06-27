@@ -28,6 +28,39 @@ const formatDate = (iso: string) => {
   return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
+const ExternalChecks = ({ phone }: { phone: string }) => {
+  const digits = (phone || '').replace(/\D/g, '');
+  const intl = digits.length === 11 && digits.startsWith('8') ? '7' + digits.slice(1) : digits;
+  const services = [
+    { name: 'НоМёр Бастер', icon: 'Search', url: `https://numbuster.com/ru_RU/number/+${intl}`, color: 'text-primary', bg: 'bg-primary/15' },
+    { name: 'GetContact', icon: 'UserSearch', url: 'https://www.getcontact.com/ru', color: 'text-[#0A84FF]', bg: 'bg-[#0A84FF]/15' },
+  ];
+  return (
+    <div className="mt-4">
+      <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+        <Icon name="ExternalLink" size={12} />Проверить в других сервисах
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        {services.map((s) => (
+          <a
+            key={s.name}
+            href={s.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="glass rounded-xl px-3 py-2.5 flex items-center gap-2 hover:bg-secondary/40 transition-colors"
+          >
+            <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
+              <Icon name={s.icon} size={16} className={s.color} />
+            </div>
+            <span className="text-sm font-semibold truncate">{s.name}</span>
+            <Icon name="ChevronRight" size={14} className="text-muted-foreground ml-auto shrink-0" />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const renderStars = (rating: number, size = 14) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map((i) => (
@@ -234,6 +267,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
                 <Icon name="Plus" size={16} />Оставить отзыв
               </Button>
             </div>
+            <ExternalChecks phone={result.phone} />
           </div>
         ) : (
           <div className="glass rounded-2xl p-6 text-center">
@@ -241,6 +275,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
             <p className="font-medium">Номер пока не в базе</p>
             <p className="text-sm text-muted-foreground mt-1 mb-4">Станьте первым, кто оставит отзыв о нём.</p>
             <Button onClick={() => onOpenForm(query)} className="rounded-xl"><Icon name="Plus" size={16} />Добавить отзыв</Button>
+            <div className="text-left max-w-sm mx-auto"><ExternalChecks phone={query} /></div>
           </div>
         )}
       </div>
