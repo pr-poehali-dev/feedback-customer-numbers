@@ -40,7 +40,7 @@ const ExternalChecks = ({ phone }: { phone: string }) => {
   return (
     <div className="mt-4">
       <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
-        <Icon name="ExternalLink" size={12} />Проверить в других сервисах
+        <Icon name="ExternalLink" size={12} />Проверить в других сервисах · номер копируется
       </p>
       <div className="grid grid-cols-2 gap-2">
         {services.map((s) => (
@@ -49,6 +49,7 @@ const ExternalChecks = ({ phone }: { phone: string }) => {
             href={s.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => { if (intl) navigator.clipboard?.writeText('+' + intl).catch(() => {}); }}
             className="glass rounded-xl px-3 py-2.5 flex items-center gap-2 hover:bg-secondary/40 transition-colors"
           >
             <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
