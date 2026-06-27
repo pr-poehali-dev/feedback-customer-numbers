@@ -98,7 +98,7 @@ def handler(event: dict, context) -> dict:
         chat_text = '\n'.join(lines)
         chat_esc = chat_text.replace("'", "''")
         cur.execute(
-            "INSERT INTO messages (user_id, user_name, text) VALUES (NULL, 'Новое размещение', '%s')" % chat_esc
+            "INSERT INTO messages (user_id, user_name, text, author_phone) VALUES (NULL, 'Новое размещение', '%s', '%s')" % (chat_esc, ph_esc)
         )
         conn.commit()
         return {'statusCode': 200, 'headers': _cors(),

@@ -107,6 +107,61 @@ const formatPhone = (raw?: string) => {
   return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8, 10)}`;
 };
 
+const ContactMenu = ({ phone, open, onToggle, mine }: { phone: string; open: boolean; onToggle: () => void; mine?: boolean }) => {
+  const num = (phone || '').replace(/\D/g, '').slice(-10);
+  return (
+    <div className="relative inline-block">
+      <button
+        onClick={onToggle}
+        className={`text-[11px] font-mono flex items-center gap-1 hover:underline ${mine ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}
+      >
+        <Icon name="Phone" size={11} />
+        {formatPhone(phone)}
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 flex flex-col rounded-xl glass border border-border shadow-lg overflow-hidden min-w-[160px]">
+          <a
+            href={`tel:+7${num}`}
+            onClick={onToggle}
+            className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors"
+          >
+            <Icon name="Phone" size={14} className="text-primary" />Позвонить
+          </a>
+          <a
+            href={`https://wa.me/7${num}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onToggle}
+            className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border"
+          >
+            <Icon name="MessageCircle" size={14} className="text-green-600" />WhatsApp
+          </a>
+          <a
+            href={`https://t.me/+7${num}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onToggle}
+            className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border"
+          >
+            <Icon name="Send" size={14} className="text-sky-500" />Telegram
+          </a>
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(`+7${num}`).catch(() => {});
+              toast({ title: 'Номер скопирован', description: 'Вставьте его в поиск MAX' });
+              window.open('https://max.ru', '_blank', 'noopener,noreferrer');
+              onToggle();
+            }}
+            className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border text-left"
+          >
+            <Icon name="Send" size={14} className="text-blue-500" />MAX
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const renderMessageText = (text: string) => {
   if (text.startsWith('[[red]]')) {
     const rest = text.slice('[[red]]'.length);
@@ -393,56 +448,12 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                       <div className="mb-1">
                         <p className={`text-xs font-semibold ${mine ? 'text-primary-foreground' : 'text-primary'}`}>{msg.user_name}</p>
                         {msg.author_phone && (
-                          <div className="relative">
-                            <button
-                              onClick={() => setContactFor(contactFor === msg.id ? null : msg.id)}
-                              className={`text-[11px] font-mono flex items-center gap-1 hover:underline ${mine ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}
-                            >
-                              <Icon name="Phone" size={11} />
-                              {formatPhone(msg.author_phone)}
-                            </button>
-                            {contactFor === msg.id && (
-                              <div className="absolute z-20 mt-1 flex flex-col rounded-xl glass border border-border shadow-lg overflow-hidden min-w-[160px]">
-                                <a
-                                  href={`tel:+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`}
-                                  onClick={() => setContactFor(null)}
-                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors"
-                                >
-                                  <Icon name="Phone" size={14} className="text-primary" />Позвонить
-                                </a>
-                                <a
-                                  href={`https://wa.me/7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => setContactFor(null)}
-                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border"
-                                >
-                                  <Icon name="MessageCircle" size={14} className="text-green-600" />WhatsApp
-                                </a>
-                                <a
-                                  href={`https://t.me/+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => setContactFor(null)}
-                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border"
-                                >
-                                  <Icon name="Send" size={14} className="text-sky-500" />Telegram
-                                </a>
-                                <button
-                                  onClick={() => {
-                                    const num = `+7${(msg.author_phone || '').replace(/\D/g, '').slice(-10)}`;
-                                    navigator.clipboard?.writeText(num).catch(() => {});
-                                    toast({ title: 'Номер скопирован', description: 'Вставьте его в поиск MAX' });
-                                    window.open('https://max.ru', '_blank', 'noopener,noreferrer');
-                                    setContactFor(null);
-                                  }}
-                                  className="flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors border-t border-border text-left"
-                                >
-                                  <Icon name="Send" size={14} className="text-blue-500" />MAX
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          <ContactMenu
+                            phone={msg.author_phone}
+                            open={contactFor === msg.id}
+                            onToggle={() => setContactFor(contactFor === msg.id ? null : msg.id)}
+                            mine={mine}
+                          />
                         )}
                       </div>
                     )}
@@ -473,6 +484,16 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                       </div>
                     )}
                     {msg.text && <p className="text-sm">{renderMessageText(msg.text)}</p>}
+                    {msg.text.startsWith('[[red]]') && msg.author_phone && (
+                      <div className="mt-2 pt-2 border-t border-border/40">
+                        <ContactMenu
+                          phone={msg.author_phone}
+                          open={contactFor === msg.id}
+                          onToggle={() => setContactFor(contactFor === msg.id ? null : msg.id)}
+                          mine={mine}
+                        />
+                      </div>
+                    )}
                   </div>
                   {!mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
