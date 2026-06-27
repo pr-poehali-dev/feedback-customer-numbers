@@ -1,5 +1,6 @@
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 import { NumberRecord, ReviewItem, verdictMeta } from './types';
 
 interface Props {
@@ -49,7 +50,12 @@ const ExternalChecks = ({ phone }: { phone: string }) => {
             href={s.url}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => { if (intl) navigator.clipboard?.writeText('+' + intl).catch(() => {}); }}
+            onClick={() => {
+              if (intl) {
+                navigator.clipboard?.writeText('+' + intl).catch(() => {});
+                toast({ title: 'Номер скопирован', description: `+${intl} в буфере обмена` });
+              }
+            }}
             className="glass rounded-xl px-3 py-2.5 flex items-center gap-2 hover:bg-secondary/40 transition-colors"
           >
             <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
