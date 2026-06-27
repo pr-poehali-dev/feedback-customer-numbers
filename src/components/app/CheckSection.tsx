@@ -2,7 +2,6 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { NumberRecord, ReviewItem, verdictMeta } from './types';
-import LiveClock from './LiveClock';
 
 interface Props {
   query: string;
@@ -127,10 +126,6 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
         </div>
       </div>
     )}
-
-    <div className="animate-fade-up max-w-xl mx-auto mb-4" style={{ animationDelay: '0.11s' }}>
-      <LiveClock />
-    </div>
 
     <div className="animate-fade-up max-w-xl mx-auto mb-4" style={{ animationDelay: '0.13s' }}>
       <h2 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-center">

@@ -12,6 +12,7 @@ import MembersSection from '@/components/app/MembersSection';
 import MyReviewsSection from '@/components/app/MyReviewsSection';
 import AllReviewsSection from '@/components/app/AllReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
+import LiveClock from '@/components/app/LiveClock';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
 import { playDropSound, playNotifySound } from '@/lib/dropSound';
 import { ensurePushSubscribed } from '@/lib/push';
@@ -347,6 +348,12 @@ const Index = () => {
         reviewsCount={reviewsCount}
         membersCount={membersCount}
       />
+
+      <div className="relative z-10 container mx-auto px-4 pt-6">
+        <div className="max-w-xl mx-auto animate-fade-up">
+          <LiveClock />
+        </div>
+      </div>
 
       <ChatSection
         user={p ? { id: p.id, email: p.phone, name: p.full_name } : null}
