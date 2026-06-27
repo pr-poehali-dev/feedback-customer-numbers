@@ -35,6 +35,7 @@ const ExternalChecks = ({ phone }: { phone: string }) => {
     { name: 'Num Baster', icon: 'Search', url: `https://numbuster.com/ru_RU/number/+${intl}`, color: 'text-primary', bg: 'bg-primary/15' },
     { name: 'GetContact', icon: 'UserSearch', url: 'https://www.getcontact.com/ru', color: 'text-[#0A84FF]', bg: 'bg-[#0A84FF]/15' },
     { name: 'Поиск в Яндексе', icon: 'Globe', url: `https://yandex.ru/search/?text=${encodeURIComponent('+' + intl)}`, color: 'text-[#FC3F1D]', bg: 'bg-[#FC3F1D]/15' },
+    { name: 'Бот в Telegram', icon: 'Send', url: 'https://t.me/thecratorsbot', color: 'text-[#229ED9]', bg: 'bg-[#229ED9]/15' },
   ];
   return (
     <div className="mt-4">
