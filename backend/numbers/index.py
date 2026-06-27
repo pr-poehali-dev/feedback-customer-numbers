@@ -1,9 +1,54 @@
 import json
 import os
 import re
+import urllib.request
+import urllib.parse
 import psycopg2
 
 ADMIN_PHONES = {'9652000177', '9774951403'}
+
+LINE_TYPE_RU = {
+    'mobile': 'Мобильный',
+    'landline': 'Стационарный',
+    'fixed_line': 'Стационарный',
+    'voip': 'IP-телефония',
+    'toll_free': 'Бесплатный',
+    'premium_rate': 'Премиум',
+    'unknown': 'Неизвестно',
+}
+
+
+def _lookup_phone_info(phone):
+    '''Расширенная информация о номере через numlookupapi.com. Без ключа возвращает None.'''
+    api_key = os.environ.get('NUMLOOKUP_API_KEY')
+    if not api_key:
+        return None
+    digits = re.sub(r'\D', '', phone or '')
+    if not digits:
+        return None
+    if len(digits) == 11 and digits.startswith('8'):
+        digits = '7' + digits[1:]
+    intl = '+' + digits
+    try:
+        url = ('https://api.numlookupapi.com/v1/validate/'
+               + urllib.parse.quote(intl)
+               + '?apikey=' + urllib.parse.quote(api_key)
+               + '&country_code=RU')
+        req = urllib.request.Request(url, headers={'Accept': 'application/json'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+    except Exception:
+        return None
+    line_type = (data.get('line_type') or '').lower()
+    return {
+        'valid': bool(data.get('valid')),
+        'localFormat': data.get('local_format') or '',
+        'internationalFormat': data.get('international_format') or intl,
+        'country': data.get('country_name') or '',
+        'location': data.get('location') or '',
+        'carrier': data.get('carrier') or '',
+        'lineType': LINE_TYPE_RU.get(line_type, data.get('line_type') or ''),
+    }
 
 
 def _cors_headers():
@@ -118,12 +163,13 @@ def handler(event: dict, context) -> dict:
                     "WHERE regexp_replace(phone, '\\D', '', 'g') LIKE '%%%s%%'" % tail
                 )
                 row = cur.fetchone()
+                lookup = _lookup_phone_info(phone)
                 if not row:
                     return {'statusCode': 200, 'headers': _cors_headers(),
-                            'body': json.dumps({'found': False})}
+                            'body': json.dumps({'found': False, 'lookup': lookup}, ensure_ascii=False)}
                 rec = _build_record(cur, row[0], row[1])
                 return {'statusCode': 200, 'headers': _cors_headers(),
-                        'body': json.dumps({'found': True, 'record': rec}, ensure_ascii=False)}
+                        'body': json.dumps({'found': True, 'record': rec, 'lookup': lookup}, ensure_ascii=False)}
 
             cur.execute("SELECT id, phone FROM phone_numbers ORDER BY id DESC")
             phone_rows = cur.fetchall()
