@@ -15,9 +15,10 @@ interface Props {
   participantName?: string;
   unreadChat?: number;
   membersCount?: number;
+  reviewsCount?: number;
 }
 
-const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin, isLoggedIn, participantName, unreadChat = 0, membersCount = 0 }: Props) => {
+const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin, isLoggedIn, participantName, unreadChat = 0, membersCount = 0, reviewsCount = 0 }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [pushState, setPushState] = useState<NotificationPermission | 'unsupported'>('default');
 
@@ -90,6 +91,11 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
                   {unreadChat > 99 ? '99+' : unreadChat}
                 </span>
               )}
+              {item.id === 'check' && reviewsCount > 0 && (
+                <span className="ml-0.5 min-w-5 h-5 px-1.5 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center">
+                  {reviewsCount > 99 ? '99+' : reviewsCount}
+                </span>
+              )}
               {item.id === 'members' && membersCount > 0 && (
                 <span className="ml-0.5 min-w-5 h-5 px-1.5 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center">
                   {membersCount > 99 ? '99+' : membersCount}
@@ -159,6 +165,11 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
               {item.id === 'chat' && unreadChat > 0 && (
                 <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
                   {unreadChat > 99 ? '99+' : unreadChat}
+                </span>
+              )}
+              {item.id === 'check' && reviewsCount > 0 && (
+                <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center">
+                  {reviewsCount > 99 ? '99+' : reviewsCount}
                 </span>
               )}
               {item.id === 'members' && membersCount > 0 && (

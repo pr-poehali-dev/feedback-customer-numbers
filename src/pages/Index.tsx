@@ -44,6 +44,7 @@ const Index = () => {
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
+  const [reviewsCount, setReviewsCount] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
   const lastFetchedIdRef = useRef(0);
@@ -71,6 +72,13 @@ const Index = () => {
       .then((data) => setMembersCount((data.members || []).length))
       .catch(() => {});
   }, [showMembers]);
+
+  useEffect(() => {
+    fetch(API)
+      .then((r) => r.json())
+      .then((data) => { if (typeof data.totalReviews === 'number') setReviewsCount(data.totalReviews); })
+      .catch(() => {});
+  }, [reviewsRefresh]);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
@@ -357,6 +365,7 @@ const Index = () => {
         participantName={p?.full_name}
         unreadChat={unreadChat}
         membersCount={membersCount}
+        reviewsCount={reviewsCount}
       />
 
       <div className="relative z-10 container mx-auto px-4 pt-6">
