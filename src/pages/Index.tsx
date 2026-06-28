@@ -46,6 +46,7 @@ const Index = () => {
   const [membersCount, setMembersCount] = useState(0);
   const [reviewsCount, setReviewsCount] = useState(0);
   const [checkedCount, setCheckedCount] = useState(0);
+  const [scamCount, setScamCount] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
   const lastFetchedIdRef = useRef(0);
@@ -79,7 +80,10 @@ const Index = () => {
       .then((r) => r.json())
       .then((data) => {
         if (typeof data.totalReviews === 'number') setReviewsCount(data.totalReviews);
-        if (Array.isArray(data.records)) setCheckedCount(data.records.length);
+        if (Array.isArray(data.records)) {
+          setCheckedCount(data.records.length);
+          setScamCount(data.records.filter((r: NumberRecord) => r.verdict === 'scam').length);
+        }
       })
       .catch(() => {});
   }, [reviewsRefresh]);
@@ -405,6 +409,7 @@ const Index = () => {
         tracked={tracked}
         reviewsCount={reviewsCount}
         checkedCount={checkedCount}
+        scamCount={scamCount}
         onSearch={handleSearch}
         onToggleTrack={toggleTrack}
         onOpenForm={(phone) => requireParticipant(() => { setEditReview(undefined); setFormPhone(phone); setFormOpen(true); })}

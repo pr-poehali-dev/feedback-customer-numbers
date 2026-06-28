@@ -14,6 +14,7 @@ interface Props {
   myPhone?: string;
   reviewsCount?: number;
   checkedCount?: number;
+  scamCount?: number;
   onSearch: () => void;
   onToggleTrack: (phone: string) => void;
   onOpenForm: (phone?: string) => void;
@@ -80,7 +81,7 @@ const renderStars = (rating: number, size = 14) => (
   </div>
 );
 
-const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, reviewsCount = 0, checkedCount = 0, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => (
+const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, reviewsCount = 0, checkedCount = 0, scamCount = 0, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => (
   <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
     <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
@@ -152,18 +153,21 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
     </div>
 
     {(reviewsCount > 0 || checkedCount > 0) && (
-      <div className="animate-fade-up max-w-xl mx-auto mt-5 grid grid-cols-2 gap-3" style={{ animationDelay: '0.16s' }}>
-        <div className="glass rounded-xl px-4 py-3 flex items-center justify-center gap-2">
+      <div className="animate-fade-up max-w-xl mx-auto mt-5 grid grid-cols-3 gap-3" style={{ animationDelay: '0.16s' }}>
+        <div className="glass rounded-xl px-3 py-3 flex flex-col items-center justify-center gap-1">
           <Icon name="MessagesSquare" size={18} className="text-primary shrink-0" />
-          <span className="text-sm text-muted-foreground">
-            <span className="font-bold text-foreground">{reviewsCount}</span> {reviewWord(reviewsCount)}
-          </span>
+          <span className="text-lg font-bold text-foreground leading-none">{reviewsCount}</span>
+          <span className="text-xs text-muted-foreground">{reviewWord(reviewsCount)}</span>
         </div>
-        <div className="glass rounded-xl px-4 py-3 flex items-center justify-center gap-2">
+        <div className="glass rounded-xl px-3 py-3 flex flex-col items-center justify-center gap-1">
           <Icon name="ShieldCheck" size={18} className="text-primary shrink-0" />
-          <span className="text-sm text-muted-foreground">
-            <span className="font-bold text-foreground">{checkedCount}</span> {numberWord(checkedCount)}
-          </span>
+          <span className="text-lg font-bold text-foreground leading-none">{checkedCount}</span>
+          <span className="text-xs text-muted-foreground">{numberWord(checkedCount)}</span>
+        </div>
+        <div className="glass rounded-xl px-3 py-3 flex flex-col items-center justify-center gap-1">
+          <Icon name="ShieldX" size={18} className="text-destructive shrink-0" />
+          <span className="text-lg font-bold text-foreground leading-none">{scamCount}</span>
+          <span className="text-xs text-muted-foreground">{scamCount === 1 ? 'мошенник' : 'мошенников'}</span>
         </div>
       </div>
     )}
