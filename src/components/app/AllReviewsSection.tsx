@@ -48,6 +48,7 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
   const [open, setOpen] = useState(false);
   const PAGE = 10;
   const [visibleCount, setVisibleCount] = useState(PAGE);
+  const [highlightId, setHighlightId] = useState<number | null>(null);
 
   useEffect(() => { setVisibleCount(PAGE); }, [search, sort]);
 
@@ -84,6 +85,29 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
     window.addEventListener('open-all-reviews', handler);
     return () => window.removeEventListener('open-all-reviews', handler);
   }, []);
+
+  useEffect(() => {
+    if (loading || records.length === 0) return;
+    const m = window.location.hash.match(/#review-(\d+)/);
+    if (!m) return;
+    const targetId = Number(m[1]);
+
+    setOpen(true);
+    setSearch('');
+    setSort('fresh');
+
+    const idx = records.findIndex((r) => (r.reviewList || []).some((rv) => rv.id === targetId));
+    if (idx >= 0) setVisibleCount((v) => Math.max(v, idx + 1));
+
+    setHighlightId(targetId);
+    setTimeout(() => {
+      document.getElementById(`review-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 250);
+    const t = setTimeout(() => setHighlightId(null), 4000);
+
+    history.replaceState(null, '', window.location.pathname + '#all-reviews');
+    return () => clearTimeout(t);
+  }, [loading, records]);
 
   const filtered = records
     .filter((r) => r.phone.replace(/\D/g, '').includes(search.replace(/\D/g, '')))
@@ -177,7 +201,15 @@ const AllReviewsSection = ({ refreshKey, onCount }: Props) => {
 
               <div className="space-y-2">
                 {(rec.reviewList || []).map((rv, i) => (
-                  <div key={rv.id ?? i} className="rounded-xl bg-secondary/40 p-3">
+                  <div
+                    key={rv.id ?? i}
+                    id={rv.id ? `review-${rv.id}` : undefined}
+                    className={`rounded-xl p-3 transition-all duration-500 ${
+                      highlightId && rv.id === highlightId
+                        ? 'bg-primary/15 ring-2 ring-primary'
+                        : 'bg-secondary/40'
+                    }`}
+                  >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="flex items-center gap-2 min-w-0">
                         <Icon name="User" size={13} className="text-muted-foreground shrink-0" />

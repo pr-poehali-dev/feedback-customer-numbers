@@ -289,9 +289,10 @@ def handler(event: dict, context) -> dict:
             v_esc = verdict.replace("'", "''")
             cur.execute(
                 "INSERT INTO reviews (phone_id, rating, verdict, author, customer_name, object_address, comment, tags, author_phone) "
-                "VALUES (%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (
+                "VALUES (%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s') RETURNING id" % (
                     phone_id, rating, v_esc, a_esc, cn_esc, oa_esc, c_esc, t_esc, ap_esc)
             )
+            new_review_id = cur.fetchone()[0]
             conn.commit()
 
             try:
@@ -302,7 +303,7 @@ def handler(event: dict, context) -> dict:
                     cur, conn,
                     'Новый отзыв %s' % stars,
                     '%s на номер %s: %s' % (author, phone, snippet),
-                    '/#all-reviews',
+                    '/#review-%s' % new_review_id,
                 )
             except Exception as exc:
                 print('PUSH on review error: %s' % str(exc)[:200])
