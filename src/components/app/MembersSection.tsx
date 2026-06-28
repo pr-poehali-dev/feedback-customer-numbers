@@ -25,6 +25,14 @@ const MembersSection = ({ onClose, canManage }: { onClose?: () => void; canManag
 
   useEffect(() => { load(); }, []);
 
+  const todayStr = (() => {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}.${mm}.${d.getFullYear()}`;
+  })();
+  const todayCount = members.filter((m) => m.joined === todayStr).length;
+
   const removeMember = async (m: Member) => {
     if (!window.confirm(`Удалить участника «${m.short_name}»?`)) return;
     setDeletingId(m.id);
@@ -50,6 +58,12 @@ const MembersSection = ({ onClose, canManage }: { onClose?: () => void; canManag
         <Icon name="Users" size={24} className="text-primary" />
         <h2 className="text-2xl font-display font-bold">Участники</h2>
         <span className="text-sm text-muted-foreground ml-1">({members.length})</span>
+        {todayCount > 0 && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
+            <Icon name="Sparkles" size={13} />
+            Сегодня: {todayCount}
+          </span>
+        )}
         {onClose && (
           <button onClick={onClose} className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <Icon name="X" size={16} />Скрыть
