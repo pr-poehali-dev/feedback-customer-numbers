@@ -9,7 +9,6 @@ import CheckSection from '@/components/app/CheckSection';
 import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
 import MembersSection from '@/components/app/MembersSection';
-import MyReviewsSection from '@/components/app/MyReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import LiveClock from '@/components/app/LiveClock';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
@@ -400,15 +399,6 @@ const Index = () => {
         onCloseHint={closeHint}
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
-
-      {p && (
-        <MyReviewsSection
-          myPhone={p.phone}
-          refreshKey={reviewsRefresh}
-          onEditReview={(rv) => { setEditReview(rv); setFormOpen(true); }}
-          onDeleteReview={deleteReview}
-        />
-      )}
 
       {showMembers && (
         <MembersSection

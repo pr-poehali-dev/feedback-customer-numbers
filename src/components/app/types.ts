@@ -66,7 +66,6 @@ export const verdictMeta: Record<Verdict, { label: string; color: string; icon: 
 
 export const navItems = [
   { id: 'check', label: 'Проверка', icon: 'Search' },
-  { id: 'my-reviews', label: 'Мои отзывы', icon: 'PenLine' },
   { id: 'members', label: 'Участники', icon: 'Users' },
   { id: 'chat', label: 'Чат', icon: 'MessageCircle' },
   { id: 'support', label: 'Контакты', icon: 'LifeBuoy' },
