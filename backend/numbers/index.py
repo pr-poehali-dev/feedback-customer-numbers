@@ -293,6 +293,20 @@ def handler(event: dict, context) -> dict:
                     phone_id, rating, v_esc, a_esc, cn_esc, oa_esc, c_esc, t_esc, ap_esc)
             )
             conn.commit()
+
+            try:
+                from push import send_push_to_all
+                stars = '★' * max(1, min(5, rating))
+                snippet = comment[:80] + ('…' if len(comment) > 80 else '')
+                send_push_to_all(
+                    cur, conn,
+                    'Новый отзыв %s' % stars,
+                    '%s: %s' % (author, snippet),
+                    '/#all-reviews',
+                )
+            except Exception as exc:
+                print('PUSH on review error: %s' % str(exc)[:200])
+
             rec = _build_record(cur, phone_id, phone)
             return {'statusCode': 200, 'headers': _cors_headers(),
                     'body': json.dumps({'success': True, 'record': rec}, ensure_ascii=False)}
