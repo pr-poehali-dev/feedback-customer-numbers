@@ -399,6 +399,7 @@ const Index = () => {
         searching={searching}
         hintClosed={hintClosed}
         tracked={tracked}
+        reviewsCount={reviewsCount}
         onSearch={handleSearch}
         onToggleTrack={toggleTrack}
         onOpenForm={(phone) => requireParticipant(() => { setEditReview(undefined); setFormPhone(phone); setFormOpen(true); })}

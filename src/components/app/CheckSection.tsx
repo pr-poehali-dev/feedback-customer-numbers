@@ -1,7 +1,7 @@
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { NumberRecord, ReviewItem, verdictMeta } from './types';
+import { NumberRecord, ReviewItem, verdictMeta, reviewWord } from './types';
 
 interface Props {
   query: string;
@@ -12,6 +12,7 @@ interface Props {
   hintClosed: boolean;
   tracked: string[];
   myPhone?: string;
+  reviewsCount?: number;
   onSearch: () => void;
   onToggleTrack: (phone: string) => void;
   onOpenForm: (phone?: string) => void;
@@ -78,7 +79,7 @@ const renderStars = (rating: number, size = 14) => (
   </div>
 );
 
-const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => (
+const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, reviewsCount = 0, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => (
   <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
     <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
@@ -148,6 +149,17 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
         </Button>
       </div>
     </div>
+
+    {reviewsCount > 0 && (
+      <div className="animate-fade-up max-w-xl mx-auto mt-5" style={{ animationDelay: '0.16s' }}>
+        <div className="glass rounded-xl px-4 py-3 flex items-center justify-center gap-2">
+          <Icon name="MessagesSquare" size={18} className="text-primary" />
+          <span className="text-sm text-muted-foreground">
+            Всего оставлено отзывов: <span className="font-bold text-foreground">{reviewsCount}</span> {reviewWord(reviewsCount)}
+          </span>
+        </div>
+      </div>
+    )}
 
     {onOpenInstall && (
       <button

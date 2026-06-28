@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { navItems } from './types';
+import { navItems, reviewWord } from './types';
 import { isPushSupported, getPushPermission, enablePushNotifications } from '@/lib/push';
 
 interface Props {
@@ -92,8 +92,8 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
                 </span>
               )}
               {item.id === 'check' && reviewsCount > 0 && (
-                <span className="ml-0.5 min-w-5 h-5 px-1.5 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center">
-                  {reviewsCount > 99 ? '99+' : reviewsCount}
+                <span className="ml-0.5 h-5 px-2 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center whitespace-nowrap">
+                  {reviewsCount} {reviewWord(reviewsCount)}
                 </span>
               )}
               {item.id === 'members' && membersCount > 0 && (
@@ -168,8 +168,8 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
                 </span>
               )}
               {item.id === 'check' && reviewsCount > 0 && (
-                <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center">
-                  {reviewsCount > 99 ? '99+' : reviewsCount}
+                <span className="ml-auto h-5 px-2 rounded-full bg-secondary text-foreground text-[11px] font-bold flex items-center justify-center whitespace-nowrap">
+                  {reviewsCount} {reviewWord(reviewsCount)}
                 </span>
               )}
               {item.id === 'members' && membersCount > 0 && (

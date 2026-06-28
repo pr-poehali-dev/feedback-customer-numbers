@@ -64,6 +64,14 @@ export const verdictMeta: Record<Verdict, { label: string; color: string; icon: 
   scam: { label: 'Мошенник', color: 'text-destructive', icon: 'ShieldX' },
 };
 
+export const reviewWord = (n: number) => {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'отзыв';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'отзыва';
+  return 'отзывов';
+};
+
 export const navItems = [
   { id: 'check', label: 'Проверка', icon: 'Search' },
   { id: 'members', label: 'Участники', icon: 'Users' },
