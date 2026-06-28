@@ -38,7 +38,7 @@ const AppHeader = ({ onOpenForm, onOpenMembers, onOpenInstall, onLogout, onLogin
     const ok = await enablePushNotifications();
     setPushState(getPushPermission());
     if (ok) {
-      toast({ title: 'Уведомления включены', description: 'Будем присылать новые сообщения чата.' });
+      toast({ title: 'Уведомления включены', description: 'Будем сообщать о новых участниках и сообщениях.' });
     } else {
       toast({ title: 'Не удалось включить уведомления', variant: 'destructive' });
     }

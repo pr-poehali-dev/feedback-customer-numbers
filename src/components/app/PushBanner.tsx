@@ -29,7 +29,7 @@ const PushBanner = () => {
     const ok = await enablePushNotifications();
     setLoading(false);
     if (ok) {
-      toast({ title: 'Уведомления включены', description: 'Будем присылать новые сообщения чата.' });
+      toast({ title: 'Уведомления включены', description: 'Будем сообщать о новых участниках и сообщениях.' });
       setVisible(false);
     } else {
       toast({ title: 'Не удалось включить уведомления', description: 'Разрешите уведомления в браузере и попробуйте снова.', variant: 'destructive' });
@@ -43,7 +43,7 @@ const PushBanner = () => {
       </div>
       <div className="flex-1">
         <p className="font-semibold leading-tight">Включите уведомления</p>
-        <p className="text-sm text-muted-foreground">Не пропускайте новые сообщения в чате — приходят даже когда сайт закрыт.</p>
+        <p className="text-sm text-muted-foreground">Узнавайте о новых участниках и сообщениях — приходят даже когда сайт закрыт.</p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <Button size="sm" className="rounded-lg font-medium" onClick={enable} disabled={loading}>
