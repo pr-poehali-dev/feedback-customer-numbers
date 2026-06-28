@@ -90,6 +90,19 @@ def handler(event: dict, context) -> dict:
         )
         pid = cur.fetchone()[0]
         conn.commit()
+
+        try:
+            from push import send_push_to_all
+            org_part = (' (%s)' % organization) if organization else ''
+            send_push_to_all(
+                cur, conn,
+                'Новый участник',
+                '%s%s зарегистрировался' % (full_name, org_part),
+                '/',
+            )
+        except Exception as exc:
+            print('PUSH on register error: %s' % str(exc)[:200])
+
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({'success': True, 'id': pid}, ensure_ascii=False)}
 
