@@ -297,11 +297,11 @@ def handler(event: dict, context) -> dict:
             try:
                 from push import send_push_to_all
                 stars = '★' * max(1, min(5, rating))
-                snippet = comment[:80] + ('…' if len(comment) > 80 else '')
+                snippet = comment[:70] + ('…' if len(comment) > 70 else '')
                 send_push_to_all(
                     cur, conn,
                     'Новый отзыв %s' % stars,
-                    '%s: %s' % (author, snippet),
+                    '%s на номер %s: %s' % (author, phone, snippet),
                     '/#all-reviews',
                 )
             except Exception as exc:
