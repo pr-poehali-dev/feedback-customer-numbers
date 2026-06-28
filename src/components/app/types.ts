@@ -72,6 +72,14 @@ export const reviewWord = (n: number) => {
   return 'отзывов';
 };
 
+export const numberWord = (n: number) => {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'номер';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'номера';
+  return 'номеров';
+};
+
 export const navItems = [
   { id: 'check', label: 'Проверка', icon: 'Search' },
   { id: 'members', label: 'Участники', icon: 'Users' },

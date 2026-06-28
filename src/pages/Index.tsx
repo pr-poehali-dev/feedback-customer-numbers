@@ -45,6 +45,7 @@ const Index = () => {
   const [unreadChat, setUnreadChat] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const [reviewsCount, setReviewsCount] = useState(0);
+  const [checkedCount, setCheckedCount] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
   const lastFetchedIdRef = useRef(0);
@@ -76,7 +77,10 @@ const Index = () => {
   useEffect(() => {
     fetch(API)
       .then((r) => r.json())
-      .then((data) => { if (typeof data.totalReviews === 'number') setReviewsCount(data.totalReviews); })
+      .then((data) => {
+        if (typeof data.totalReviews === 'number') setReviewsCount(data.totalReviews);
+        if (Array.isArray(data.records)) setCheckedCount(data.records.length);
+      })
       .catch(() => {});
   }, [reviewsRefresh]);
 
@@ -400,6 +404,7 @@ const Index = () => {
         hintClosed={hintClosed}
         tracked={tracked}
         reviewsCount={reviewsCount}
+        checkedCount={checkedCount}
         onSearch={handleSearch}
         onToggleTrack={toggleTrack}
         onOpenForm={(phone) => requireParticipant(() => { setEditReview(undefined); setFormPhone(phone); setFormOpen(true); })}
