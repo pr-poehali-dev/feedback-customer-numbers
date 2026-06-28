@@ -10,7 +10,6 @@ import ChatSection from '@/components/app/ChatSection';
 import ReviewForm from '@/components/app/ReviewForm';
 import MembersSection from '@/components/app/MembersSection';
 import MyReviewsSection from '@/components/app/MyReviewsSection';
-import AllReviewsSection from '@/components/app/AllReviewsSection';
 import ParticipantGate, { Participant } from '@/components/app/ParticipantGate';
 import LiveClock from '@/components/app/LiveClock';
 import { API, CHAT_API, NumberRecord, ChatMessage, ReviewItem } from '@/components/app/types';
@@ -45,7 +44,6 @@ const Index = () => {
   const [showMembers, setShowMembers] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
-  const [reviewsCount, setReviewsCount] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const chatVisibleRef = useRef(false);
   const lastSeenIdRef = useRef(0);
@@ -275,12 +273,12 @@ const Index = () => {
     return () => { clearInterval(interval); observer.disconnect(); };
   }, []);
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
+  const runSearch = async (phone: string) => {
+    if (!phone.trim()) return;
     setSearching(true);
     setSearched(true);
     try {
-      const res = await fetch(`${API}?phone=${encodeURIComponent(query)}`);
+      const res = await fetch(`${API}?phone=${encodeURIComponent(phone)}`);
       const data = await res.json();
       setResult(data.found ? data.record : null);
     } catch {
@@ -289,6 +287,20 @@ const Index = () => {
       setSearching(false);
     }
   };
+
+  const handleSearch = () => runSearch(query);
+
+  useEffect(() => {
+    // Открытие проверки конкретного номера по ссылке из push-уведомления
+    const params = new URLSearchParams(window.location.search);
+    const checkPhone = params.get('check');
+    if (checkPhone) {
+      setQuery(checkPhone);
+      runSearch(checkPhone);
+      setTimeout(() => document.getElementById('check')?.scrollIntoView({ behavior: 'smooth' }), 300);
+      history.replaceState(null, '', window.location.pathname + '#check');
+    }
+  }, []);
 
   const toggleTrack = (phone: string) => {
     const isTracked = tracked.includes(phone);
@@ -345,7 +357,6 @@ const Index = () => {
         isLoggedIn={!!p}
         participantName={p?.full_name}
         unreadChat={unreadChat}
-        reviewsCount={reviewsCount}
         membersCount={membersCount}
       />
 
@@ -389,8 +400,6 @@ const Index = () => {
         onCloseHint={closeHint}
         onOpenInstall={!isStandalone && (installPrompt || isIos) ? () => setInstallHelpOpen(true) : undefined}
       />
-
-      <AllReviewsSection refreshKey={reviewsRefresh} onCount={setReviewsCount} />
 
       {p && (
         <MyReviewsSection

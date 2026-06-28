@@ -289,21 +289,21 @@ def handler(event: dict, context) -> dict:
             v_esc = verdict.replace("'", "''")
             cur.execute(
                 "INSERT INTO reviews (phone_id, rating, verdict, author, customer_name, object_address, comment, tags, author_phone) "
-                "VALUES (%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s') RETURNING id" % (
+                "VALUES (%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (
                     phone_id, rating, v_esc, a_esc, cn_esc, oa_esc, c_esc, t_esc, ap_esc)
             )
-            new_review_id = cur.fetchone()[0]
             conn.commit()
 
             try:
                 from push import send_push_to_all
                 stars = '★' * max(1, min(5, rating))
                 snippet = comment[:70] + ('…' if len(comment) > 70 else '')
+                from urllib.parse import quote
                 send_push_to_all(
                     cur, conn,
                     'Новый отзыв %s' % stars,
                     '%s на номер %s: %s' % (author, phone, snippet),
-                    '/#review-%s' % new_review_id,
+                    '/?check=%s#check' % quote(phone),
                 )
             except Exception as exc:
                 print('PUSH on review error: %s' % str(exc)[:200])
