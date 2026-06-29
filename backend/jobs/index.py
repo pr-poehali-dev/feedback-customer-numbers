@@ -105,6 +105,8 @@ def handler(event: dict, context) -> dict:
         conn.commit()
 
         push_body = 'Адрес: %s · %s чел. · %s ч' % (address, workers, hours_str)
+        if price:
+            push_body += ' · %s' % price
         try:
             send_push_to_all(cur, conn, 'Новое размещение заказа', push_body)
         except Exception as exc:
