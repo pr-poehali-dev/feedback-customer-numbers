@@ -658,6 +658,10 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
             )}
           </div>
           )}
+          <p className="mt-2 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+            <Icon name="Clock" size={12} />
+            Сообщения хранятся до конца дня
+          </p>
         </div>
       </div>
 
