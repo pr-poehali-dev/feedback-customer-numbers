@@ -2,6 +2,8 @@ import json
 import os
 import psycopg2
 
+from push import send_push_to_all
+
 def _cors():
     return {
         'Access-Control-Allow-Origin': '*',
@@ -101,6 +103,13 @@ def handler(event: dict, context) -> dict:
             "INSERT INTO messages (user_id, user_name, text, author_phone) VALUES (NULL, 'Новое размещение', '%s', '%s')" % (chat_esc, ph_esc)
         )
         conn.commit()
+
+        push_body = 'Адрес: %s · %s чел. · %s ч' % (address, workers, hours_str)
+        try:
+            send_push_to_all(cur, conn, 'Новое размещение заказа', push_body)
+        except Exception as exc:
+            print('JOBS PUSH ERROR: %s' % str(exc)[:200])
+
         return {'statusCode': 200, 'headers': _cors(),
                 'body': json.dumps({'success': True, 'id': row[0]}, ensure_ascii=False)}
 
