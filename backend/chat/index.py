@@ -158,12 +158,15 @@ def handler(event: dict, context) -> dict:
         except (TypeError, ValueError):
             since = None
 
-        # Автоудаление: чистим сообщения старше 1 часа (и их реакции)
+        # Автоудаление раз в сутки: чистим сообщения за прошлые дни.
+        # Граница — сегодняшняя полночь по Москве (UTC+3).
         cur.execute(
             "DELETE FROM message_reactions WHERE message_id IN "
-            "(SELECT id FROM messages WHERE created_at < NOW() - INTERVAL '1 hour')"
+            "(SELECT id FROM messages WHERE created_at < date_trunc('day', NOW() + INTERVAL '3 hours') - INTERVAL '3 hours')"
         )
-        cur.execute("DELETE FROM messages WHERE created_at < NOW() - INTERVAL '1 hour'")
+        cur.execute(
+            "DELETE FROM messages WHERE created_at < date_trunc('day', NOW() + INTERVAL '3 hours') - INTERVAL '3 hours'"
+        )
         conn.commit()
 
         # Лёгкий режим: если клиент знает последний ID и новых сообщений нет —
