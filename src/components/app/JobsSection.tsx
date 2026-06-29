@@ -77,6 +77,7 @@ const JobForm = ({ onDone }: { onDone: () => void }) => {
 const JobsSection = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [formOpen, setFormOpen] = useState(false);
+  const [highlightId, setHighlightId] = useState<number | null>(null);
 
   const loadJobs = async () => {
     try {
@@ -87,6 +88,23 @@ const JobsSection = () => {
   };
 
   useEffect(() => { loadJobs(); }, []);
+
+  useEffect(() => {
+    if (jobs.length === 0) return;
+    const focusFromHash = () => {
+      const m = window.location.hash.match(/^#job-(\d+)/);
+      if (!m) return;
+      const id = Number(m[1]);
+      setHighlightId(id);
+      setTimeout(() => {
+        document.getElementById(`job-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+      setTimeout(() => setHighlightId(null), 3000);
+    };
+    focusFromHash();
+    window.addEventListener('hashchange', focusFromHash);
+    return () => window.removeEventListener('hashchange', focusFromHash);
+  }, [jobs]);
 
   return (
     <section id="jobs" className="relative z-10 container mx-auto px-4 py-16">
@@ -108,7 +126,7 @@ const JobsSection = () => {
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {jobs.map((job) => (
-            <div key={job.id} className="glass rounded-2xl p-5 hover:border-primary/40 transition-colors">
+            <div key={job.id} id={`job-${job.id}`} className={`glass rounded-2xl p-5 hover:border-primary/40 transition-all ${highlightId === job.id ? 'ring-2 ring-primary scale-[1.02]' : ''}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="font-semibold text-sm">{job.work_type}</p>

@@ -108,7 +108,7 @@ def handler(event: dict, context) -> dict:
         if price:
             push_body += ' · %s' % price
         try:
-            send_push_to_all(cur, conn, 'Новое размещение заказа', push_body)
+            send_push_to_all(cur, conn, 'Новое размещение заказа', push_body, url='/#job-%s' % row[0])
         except Exception as exc:
             print('JOBS PUSH ERROR: %s' % str(exc)[:200])
 

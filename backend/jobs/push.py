@@ -38,7 +38,7 @@ def _vapid_claims(endpoint: str):
     return claims
 
 
-def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str = ''):
+def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str = '', url: str = '/#chat'):
     """Шлёт push всем сохранённым подпискам. Битые подписки удаляет."""
     if not os.environ.get('VAPID_PRIVATE_KEY'):
         return
@@ -63,7 +63,7 @@ def send_push_to_all(cur, conn, title: str, body_text: str, exclude_phone: str =
     payload = json.dumps({
         'title': title,
         'body': body_text,
-        'url': '/#chat',
+        'url': url,
         'badge_count': badge,
     }, ensure_ascii=False)
 
