@@ -195,6 +195,21 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
     toast({ title: 'Сообщение скопировано' });
   };
 
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startLongPress = (text: string) => {
+    if (!text) return;
+    longPressRef.current = setTimeout(() => {
+      if (navigator.vibrate) navigator.vibrate(30);
+      copyMessage(text);
+    }, 500);
+  };
+  const cancelLongPress = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+  };
+
   const [recording, setRecording] = useState(false);
   const [recordSecs, setRecordSecs] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -454,7 +469,12 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                       )}
                     </div>
                   )}
-                  <div className={`rounded-2xl px-4 py-2 ${mine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
+                  <div
+                    className={`rounded-2xl px-4 py-2 select-none ${mine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}
+                    onTouchStart={() => startLongPress(msg.text)}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
+                  >
                     {!msg.text.startsWith('[[red]]') && (
                       <div className="mb-1">
                         <p className={`text-xs font-semibold ${mine ? 'text-primary-foreground' : 'text-primary'}`}>{msg.user_name}</p>
