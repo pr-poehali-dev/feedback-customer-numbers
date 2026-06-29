@@ -189,6 +189,12 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_PHOTOS = 10;
 
+  const copyMessage = (text: string) => {
+    const clean = text.startsWith('[[red]]') ? text.slice('[[red]]'.length) : text;
+    navigator.clipboard?.writeText(clean).catch(() => {});
+    toast({ title: 'Сообщение скопировано' });
+  };
+
   const [recording, setRecording] = useState(false);
   const [recordSecs, setRecordSecs] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -431,6 +437,11 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                 <div className="flex items-end gap-1.5">
                   {mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      {msg.text && (
+                        <button onClick={() => copyMessage(msg.text)} className="text-muted-foreground hover:text-primary p-1.5" title="Копировать">
+                          <Icon name="Copy" size={16} />
+                        </button>
+                      )}
                       {user && onReactMessage && (
                         <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1.5" title="Реакция">
                           <Icon name="SmilePlus" size={16} />
@@ -497,6 +508,11 @@ const ChatSection = ({ user, myPhone, isAdmin, messages, chatText, chatSending, 
                   </div>
                   {!mine && (
                     <div className="flex items-center gap-1 self-center opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      {msg.text && (
+                        <button onClick={() => copyMessage(msg.text)} className="text-muted-foreground hover:text-primary p-1.5" title="Копировать">
+                          <Icon name="Copy" size={16} />
+                        </button>
+                      )}
                       {user && onReactMessage && (
                         <button onClick={() => setPickerFor(pickerFor === msg.id ? null : msg.id)} className="text-muted-foreground hover:text-primary p-1.5" title="Реакция">
                           <Icon name="SmilePlus" size={16} />
