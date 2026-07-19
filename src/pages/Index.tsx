@@ -427,18 +427,6 @@ const Index = () => {
         />
       )}
 
-      <section id="support" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="glass rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto">
-          <Icon name="LifeBuoy" size={32} className="text-primary mx-auto mb-4" />
-          <h2 className="text-2xl font-display font-bold mb-3">Нужна помощь?</h2>
-          <p className="text-muted-foreground mb-6">Свяжитесь с нашей поддержкой — ответим в течение дня и поможем разобраться с любым номером.</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button className="rounded-xl"><Icon name="Mail" size={16} />Написать на почту</Button>
-            <Button variant="outline" className="rounded-xl"><Icon name="Send" size={16} />Telegram</Button>
-          </div>
-        </div>
-      </section>
-
       <footer className="relative z-10 border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>© 2026 Микс Строй — проверка номеров заказчиков</p>
       </footer>
