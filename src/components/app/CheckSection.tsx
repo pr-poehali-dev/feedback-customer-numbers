@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -81,7 +82,9 @@ const renderStars = (rating: number, size = 14) => (
   </div>
 );
 
-const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, reviewsCount = 0, checkedCount = 0, scamCount = 0, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => (
+const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed, tracked, myPhone, reviewsCount = 0, checkedCount = 0, scamCount = 0, onSearch, onToggleTrack, onOpenForm, onEditReview, onDeleteReview, onCloseHint, onOpenInstall }: Props) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
   <section id="check" className="relative z-10 container mx-auto px-4 pt-20 pb-16 text-center">
     <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse-ring" />
@@ -140,6 +143,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
       <div className="glass rounded-2xl p-2 flex items-center gap-2">
         <Icon name="Search" size={20} className="text-muted-foreground ml-3" />
         <input
+          ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onSearch()}
@@ -148,7 +152,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
         />
         {query && (
           <button
-            onClick={() => setQuery('')}
+            onClick={() => { setQuery(''); inputRef.current?.focus(); }}
             className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1"
             title="Очистить"
           >
@@ -322,6 +326,7 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
       </div>
     )}
   </section>
-);
+  );
+};
 
 export default CheckSection;
