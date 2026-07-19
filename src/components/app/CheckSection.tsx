@@ -146,6 +146,15 @@ const CheckSection = ({ query, setQuery, result, searched, searching, hintClosed
           placeholder="Введите номер телефона..."
           className="flex-1 bg-transparent outline-none font-mono text-base placeholder:text-muted-foreground"
         />
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1"
+            title="Очистить"
+          >
+            <Icon name="X" size={18} />
+          </button>
+        )}
         <Button onClick={onSearch} disabled={searching} className="rounded-xl px-6 font-semibold">
           {searching ? '...' : 'Проверить'}
         </Button>
